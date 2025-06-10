@@ -85,7 +85,18 @@ jspm_packages/
 config.json 
 
 # Firebase service account key
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Firebase service account keys
 firebase/serviceAccountKey.json
-     firebase/serviceAccountKey.json
-     .env
-     node_modules/
+velari-59c5e-firebase-adminsdk-fbsvc-1d3000b75a.json
+
+# Discord bot config (if you use it)
+config.json
+
+# Yarn Integrity file
+.yarn-integrity
