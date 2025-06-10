@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, PermissionFlagsBits, ChannelType, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, InteractionType } from 'discord.js';
-import { buildEmbedPreview, handlePreviewButtons } from '../utils/embedPreview.js';
+import { buildEmbedPreview } from '../utils/embedPreview.js';
 
 const ALLOWED_ROLES = ['Admin', 'Sales', 'Creative Lead'];
 
