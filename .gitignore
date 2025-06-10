@@ -83,3 +83,9 @@ jspm_packages/
 
 # Discord bot specific
 config.json 
+
+# Firebase service account key
+firebase/serviceAccountKey.json
+     firebase/serviceAccountKey.json
+     .env
+     node_modules/

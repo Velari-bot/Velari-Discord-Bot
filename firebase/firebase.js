@@ -1,23 +1,20 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import admin from 'firebase-admin';
+import serviceAccount from './serviceAccountKey.json';
 
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
-};
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: 'https://velari-59c5e.firebaseio.com'
+  });
+}
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+export const db = admin.firestore();
 
 export async function saveTemplate(userId, name, data) {
-  await setDoc(doc(db, 'embedTemplates', `${userId}_${name}`), data);
+  await db.collection('embedTemplates').doc(`${userId}_${name}`).set(data);
 }
 
 export async function loadTemplate(userId, name) {
-  const docSnap = await getDoc(doc(db, 'embedTemplates', `${userId}_${name}`));
-  return docSnap.exists() ? docSnap.data() : null;
+  const doc = await db.collection('embedTemplates').doc(`${userId}_${name}`).get();
+  return doc.exists ? doc.data() : null;
 } 
