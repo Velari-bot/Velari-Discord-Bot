@@ -1,0 +1,19 @@
+{
+  "name": "discord-embed-builder",
+  "version": "1.0.0",
+  "description": "A modular Discord bot for building and managing embeds",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": ["discord", "bot", "embed", "builder"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "firebase": "^10.7.1",
+    "dotenv": "^16.3.1"
+  }
+} 
