@@ -1,17 +1,39 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, ChannelType, PermissionsBitField } from 'discord.js';
 import { setLastEmbed } from '../commands/embed.js';
 
+function isValidImageUrl(url) {
+  return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+}
+
 /**
  * Build and show the ephemeral embed preview with Send/Edit/Cancel buttons
  */
 export async function buildEmbedPreview(interaction, embedData, client, ALLOWED_ROLES) {
+  // Validate thumbnail and image URLs if provided
+  if (embedData.thumbnail && !isValidImageUrl(embedData.thumbnail)) {
+    await interaction.reply({ content: '❌ Invalid Thumbnail URL. Please use a direct image link (http/https).', ephemeral: true });
+    return;
+  }
+  if (embedData.image && !isValidImageUrl(embedData.image)) {
+    await interaction.reply({ content: '❌ Invalid Main Image URL. Please use a direct image link (http/https).', ephemeral: true });
+    return;
+  }
+
+  // Validate color
+  let color = '#FF4F8B';
+  if (embedData.color && /^#([0-9A-F]{6})$/i.test(embedData.color)) {
+    color = embedData.color;
+  }
+
   const embed = new EmbedBuilder()
     .setDescription(embedData.description)
-    .setColor(embedData.color || '#FF4F8B');
+    .setColor(color);
   if (embedData.title) embed.setTitle(embedData.title);
-  if (embedData.footer) embed.setFooter({ text: embedData.footer });
+  if (embedData.footer) embed.setFooter({ text: embedData.footer, iconURL: embedData.footerIcon || undefined });
   if (embedData.thumbnail) embed.setThumbnail(embedData.thumbnail);
   if (embedData.image) embed.setImage(embedData.image);
+  if (embedData.timestamp) embed.setTimestamp(new Date());
+  if (Array.isArray(embedData.fields)) embed.addFields(embedData.fields);
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('embed_send').setLabel('Send').setStyle(ButtonStyle.Success),
