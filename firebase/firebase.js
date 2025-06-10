@@ -1,7 +1,8 @@
 import admin from 'firebase-admin';
-import serviceAccount from './serviceAccountKey.json';
 
 if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: 'https://velari-59c5e.firebaseio.com'
