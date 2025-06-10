@@ -39,7 +39,7 @@ export async function execute(interaction, client) {
   // Discord modals do not support select menus, so we use a text input for custom hex and suggest colors in the label
   const colorInput = new TextInputBuilder()
     .setCustomId('embed_color')
-    .setLabel('Color Hex (suggested: #FF4F8B, #0099FF, #43B581, #FFCC4D, #FF5555, #9B59B6)')
+    .setLabel('Color Hex (e.g. #FF4F8B)')
     .setStyle(TextInputStyle.Short)
     .setRequired(false);
 
