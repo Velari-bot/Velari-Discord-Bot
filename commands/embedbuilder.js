@@ -43,19 +43,12 @@ export async function execute(interaction, client) {
     .setStyle(TextInputStyle.Short)
     .setRequired(false);
 
-  const imageInput = new TextInputBuilder()
-    .setCustomId('embed_image')
-    .setLabel('Image URL (optional)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
   modal.addComponents(
     new ActionRowBuilder().addComponents(titleInput),
     new ActionRowBuilder().addComponents(descInput),
     new ActionRowBuilder().addComponents(colorInput),
     new ActionRowBuilder().addComponents(footerInput),
-    new ActionRowBuilder().addComponents(thumbInput),
-    new ActionRowBuilder().addComponents(imageInput)
+    new ActionRowBuilder().addComponents(thumbInput)
   );
 
   await interaction.showModal(modal);
@@ -72,7 +65,6 @@ export async function execute(interaction, client) {
     color: modalInteraction.fields.getTextInputValue('embed_color') || '#FF4F8B',
     footer: modalInteraction.fields.getTextInputValue('embed_footer'),
     thumbnail: modalInteraction.fields.getTextInputValue('embed_thumbnail'),
-    image: modalInteraction.fields.getTextInputValue('embed_image'),
   };
 
   await buildEmbedPreview(modalInteraction, embedData, client, ALLOWED_ROLES);
