@@ -261,17 +261,25 @@ Value: ${f.value}`).join('\n\n'));
 }
 
 function getActionRows() {
-  return [
-    new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('embed_add_field').setLabel('Add Field').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('embed_remove_field').setLabel('Remove Field').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('embed_list_fields').setLabel('List Fields').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('embed_add_image').setLabel('Add Main Image').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('embed_add_footer_icon').setLabel('Add Footer Icon').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('embed_toggle_timestamp').setLabel('Toggle Timestamp').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('embed_send').setLabel('Send').setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId('embed_edit').setLabel('Edit').setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId('embed_cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger)
-    )
+  // Only include buttons that should be shown (for future dynamic logic)
+  const buttons = [
+    new ButtonBuilder().setCustomId('embed_add_field').setLabel('Add Field').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('embed_remove_field').setLabel('Remove Field').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('embed_list_fields').setLabel('List Fields').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('embed_add_image').setLabel('Add Main Image').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('embed_add_footer_icon').setLabel('Add Footer Icon').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('embed_toggle_timestamp').setLabel('Toggle Timestamp').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('embed_send').setLabel('Send').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId('embed_edit').setLabel('Edit').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('embed_cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger)
   ];
+  // Split into rows of max 5 buttons
+  const rows = [];
+  for (let i = 0; i < buttons.length; i += 5) {
+    const chunk = buttons.slice(i, i + 5);
+    if (chunk.length > 0) {
+      rows.push(new ActionRowBuilder().addComponents(...chunk));
+    }
+  }
+  return rows;
 } 
