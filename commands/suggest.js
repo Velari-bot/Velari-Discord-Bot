@@ -57,7 +57,7 @@ async function handleSetup(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
         return await interaction.reply({
             content: '❌ **You need "Manage Server" permission to setup the suggestion system.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -73,7 +73,7 @@ async function handleSetup(interaction, client) {
         .setFooter({ text: 'Velari Suggestion System', iconURL: interaction.guild.iconURL() })
         .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: 64 });
 }
 
 async function handleCreate(interaction, client) {
@@ -81,7 +81,7 @@ async function handleCreate(interaction, client) {
     if (!config || !config.channelId) {
         return await interaction.reply({
             content: '❌ **Suggestion system is not setup. Please ask an administrator to set it up.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -126,7 +126,7 @@ async function handleAnonymous(interaction, client) {
     if (!config || !config.channelId) {
         return await interaction.reply({
             content: '❌ **Suggestion system is not setup. Please ask an administrator to set it up.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -175,7 +175,7 @@ export async function handleSuggestionModal(interaction, client) {
     if (!suggestionData) {
         return await interaction.reply({
             content: '❌ **Suggestion data not found. Please try again.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -183,7 +183,7 @@ export async function handleSuggestionModal(interaction, client) {
     if (!config || !config.channelId) {
         return await interaction.reply({
             content: '❌ **Suggestion system is not setup.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -191,7 +191,7 @@ export async function handleSuggestionModal(interaction, client) {
     if (!channel) {
         return await interaction.reply({
             content: '❌ **Suggestion channel not found.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -252,7 +252,7 @@ export async function handleSuggestionModal(interaction, client) {
             .setFooter({ text: 'Velari Suggestion System', iconURL: interaction.guild.iconURL() })
             .setTimestamp();
 
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [successEmbed], flags: 64 });
         
         // Clean up
         client.suggestionData.delete(interaction.user.id);
@@ -261,7 +261,7 @@ export async function handleSuggestionModal(interaction, client) {
         console.error('Error posting suggestion:', error);
         await interaction.reply({
             content: '❌ **Failed to post suggestion. Please try again.**',
-            ephemeral: true
+            flags: 64
         });
     }
 }
@@ -278,7 +278,7 @@ export async function handleSuggestionVote(interaction, client) {
     if (!suggestion) {
         return await interaction.reply({
             content: '❌ **Suggestion not found.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -292,13 +292,13 @@ export async function handleSuggestionVote(interaction, client) {
             suggestion.upvotes.delete(userId);
             await interaction.reply({
                 content: '✅ **Your upvote has been removed.**',
-                ephemeral: true
+                flags: 64
             });
         } else {
             suggestion.upvotes.add(userId);
             await interaction.reply({
                 content: '✅ **Your upvote has been recorded.**',
-                ephemeral: true
+                flags: 64
             });
         }
     } else {
@@ -307,13 +307,13 @@ export async function handleSuggestionVote(interaction, client) {
             suggestion.downvotes.delete(userId);
             await interaction.reply({
                 content: '❌ **Your downvote has been removed.**',
-                ephemeral: true
+                flags: 64
             });
         } else {
             suggestion.downvotes.add(userId);
             await interaction.reply({
                 content: '❌ **Your downvote has been recorded.**',
-                ephemeral: true
+                flags: 64
             });
         }
     }

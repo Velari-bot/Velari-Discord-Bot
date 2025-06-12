@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, ChannelType, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { TICKET_CONFIG } from '../config.js';
+import { TICKET_CONFIG, CHANNEL_IDS } from '../config.js';
 import { db } from '../firebase/firebase.js';
 
 export const data = new SlashCommandBuilder()
@@ -152,7 +152,7 @@ async function handleAnnounce(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
         return await interaction.reply({
             content: '❌ **You need "Manage Messages" permission to make announcements.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -209,21 +209,21 @@ async function handleRemindMe(interaction, client) {
     if (!duration) {
         return await interaction.reply({
             content: '❌ **Invalid time format. Use: 1s, 1m, 1h, 1d**',
-            ephemeral: true
+            flags: 64
         });
     }
 
     if (duration < 60000) { // Less than 1 minute
         return await interaction.reply({
             content: '❌ **Reminder must be at least 1 minute in the future.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
     if (duration > 7 * 24 * 60 * 60 * 1000) { // More than 7 days
         return await interaction.reply({
             content: '❌ **Reminder cannot be more than 7 days in the future.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -252,7 +252,7 @@ async function handleRemindMe(interaction, client) {
         .setFooter({ text: 'Velari Reminder System', iconURL: interaction.guild.iconURL() })
         .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: 64 });
 }
 
 // Export functions for use in index.js
@@ -265,7 +265,7 @@ export async function handleAnnouncementModal(interaction, client) {
     if (!announcementData) {
         return await interaction.reply({
             content: '❌ **Announcement data not found. Please try again.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -273,7 +273,7 @@ export async function handleAnnouncementModal(interaction, client) {
     if (!channel) {
         return await interaction.reply({
             content: '❌ **Channel not found. Please try again.**',
-            ephemeral: true
+            flags: 64
         });
     }
 
@@ -308,7 +308,7 @@ export async function handleAnnouncementModal(interaction, client) {
             .setFooter({ text: 'Velari Announcement System', iconURL: interaction.guild.iconURL() })
             .setTimestamp();
 
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [successEmbed], flags: 64 });
         
         // Clean up
         client.announcementData.delete(interaction.user.id);
@@ -317,7 +317,7 @@ export async function handleAnnouncementModal(interaction, client) {
         console.error('Error sending announcement:', error);
         await interaction.reply({
             content: '❌ **Failed to send announcement. Please check my permissions in the channel.**',
-            ephemeral: true
+            flags: 64
         });
     }
 }

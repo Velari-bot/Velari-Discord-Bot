@@ -1,6 +1,21 @@
-export const ALLOWED_ROLES = ["1381867004734210058", "1381867079690354730", "1381867136477167697"];
-export const OVERRIDE_ROLES = ["1381867186058035271", "1381867249849208892"];
-export const LOG_CHANNEL_ID = "1381867339515039794"; // Replace with your #embed-logs channel ID 
+export const ALLOWED_ROLES = ["1381867186058035271", "1381867004734210058"];
+export const OVERRIDE_ROLES = ["1381851604109623369", "1381794416586391675"];
+export const CHANNEL_IDS = {
+  welcome: '1369435023899496498',
+  rules: '1369435178971172984',
+  announcements: '1369435271002591232',
+  pricing: '1382467465572913172',
+  faq: '1382467481733435486',
+  status: '1382467501622821076',
+  orderHere: '1382467920063496232',
+  showcase: '1382467953789894677',
+  packageAddon: '1382467968826478592',
+  reviews: '1382467982004846632',
+  generalChat: '1369436802837905458',
+  ticket: '1370521751456317531',
+  orderTracking: '1382468168509034647',
+  logs: '1369444382390091927'
+};
 
 // Ticket System Configuration
 export const TICKET_CONFIG = {
@@ -36,4 +51,11 @@ export const TICKET_CONFIG = {
         CREATE_TICKET: "🎫 Create Ticket",
         CLOSE_TICKET: "🔒 Close Ticket"
     }
+};
+
+export const ROLES = {
+  admin: '1299135105524043850',
+  staff: '1369475244712001607',
+  owner: '1369500147280773180',
+  verifiedClient: '1382471978388164729'
 }; 

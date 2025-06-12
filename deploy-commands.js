@@ -16,14 +16,18 @@ for (const file of commandFiles) {
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
+const guildIds = ['1381793479495127180', '1254224101342449694'];
+
 (async () => {
   try {
     console.log('Started refreshing application (/) commands.');
-    await rest.put(
-      Routes.applicationGuildCommands(process.env.CLIENT_ID, '1381793479495127180'),
-      { body: commands },
-    );
-    console.log('Successfully reloaded application (/) commands.');
+    for (const guildId of guildIds) {
+      await rest.put(
+        Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
+        { body: commands },
+      );
+      console.log(`Successfully reloaded application (/) commands for guild ${guildId}.`);
+    }
   } catch (error) {
     console.error(error);
   }

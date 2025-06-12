@@ -1,6 +1,6 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, ChannelType, PermissionsBitField } from 'discord.js';
 import { setLastEmbed } from '../commands/embed.js';
-import { ALLOWED_ROLES, OVERRIDE_ROLES, LOG_CHANNEL_ID } from '../config.js';
+import { ALLOWED_ROLES, OVERRIDE_ROLES, CHANNEL_IDS } from '../config.js';
 
 function isValidImageUrl(url) {
   return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(url);
@@ -13,11 +13,11 @@ function isValidImageUrl(url) {
 export async function buildEmbedPreview(interaction, embedData, client, allowedRoles, actionRows) {
   // Validate thumbnail and image URLs if provided
   if (embedData.thumbnail && !isValidImageUrl(embedData.thumbnail)) {
-    await interaction.reply({ content: '❌ Invalid Thumbnail URL. Please use a direct image link (http/https).', ephemeral: true });
+    await interaction.reply({ content: '❌ Invalid Thumbnail URL. Please use a direct image link (http/https).', flags: 64 });
     return;
   }
   if (embedData.image && !isValidImageUrl(embedData.image)) {
-    await interaction.reply({ content: '❌ Invalid Main Image URL. Please use a direct image link (http/https).', ephemeral: true });
+    await interaction.reply({ content: '❌ Invalid Main Image URL. Please use a direct image link (http/https).', flags: 64 });
     return;
   }
 
@@ -49,7 +49,7 @@ export async function buildEmbedPreview(interaction, embedData, client, allowedR
   const reply = await interaction.reply({
     embeds: [embed],
     components: rows,
-    ephemeral: true
+    flags: 64
   });
   setLastEmbed(interaction.user.id, embedData);
 
@@ -59,12 +59,12 @@ export async function buildEmbedPreview(interaction, embedData, client, allowedR
   if (!buttonInteraction) return reply;
 
   if (buttonInteraction.customId === 'embed_cancel') {
-    await buttonInteraction.update({ content: 'Embed creation cancelled.', embeds: [], components: [], ephemeral: true });
+    await buttonInteraction.update({ content: 'Embed creation cancelled.', embeds: [], components: [], flags: 64 });
     return reply;
   }
 
   if (buttonInteraction.customId === 'embed_edit') {
-    await buttonInteraction.update({ content: 'Please run /embedbuilder again to edit.', embeds: [], components: [], ephemeral: true });
+    await buttonInteraction.update({ content: 'Please run /embedbuilder again to edit.', embeds: [], components: [], flags: 64 });
     return reply;
   }
 
@@ -75,7 +75,7 @@ export async function buildEmbedPreview(interaction, embedData, client, allowedR
     const hasPublicAccess = ALLOWED_ROLES.some(role => memberRoles.includes(role));
     const isOverride = OVERRIDE_ROLES.some(role => memberRoles.includes(role));
     if (!hasPublicAccess && !isOverride) {
-      await buttonInteraction.update({ content: "🚫 You don't have permission to send embeds to public channels.", embeds: [], components: [], ephemeral: true });
+      await buttonInteraction.update({ content: "🚫 You don't have permission to send embeds to public channels.", embeds: [], components: [], flags: 64 });
       return reply;
     }
     // Channel select menu
@@ -86,7 +86,7 @@ export async function buildEmbedPreview(interaction, embedData, client, allowedR
       .setPlaceholder('Select a channel to send the embed')
       .addOptions(options);
     const selectRow = new ActionRowBuilder().addComponents(selectMenu);
-    await buttonInteraction.update({ content: 'Select a channel to send the embed:', embeds: [embed], components: [selectRow], ephemeral: true });
+    await buttonInteraction.update({ content: 'Select a channel to send the embed:', embeds: [embed], components: [selectRow], flags: 64 });
     // Channel select handler
     const selectFilter = i => i.customId === 'embed_channel_select' && i.user.id === interaction.user.id;
     const selectInteraction = await interaction.channel.awaitMessageComponent({ filter: selectFilter, time: 5 * 60 * 1000 }).catch(() => null);
@@ -95,7 +95,7 @@ export async function buildEmbedPreview(interaction, embedData, client, allowedR
     await channel.send({ embeds: [embed] });
 
     // Logging logic
-    const logChannel = interaction.guild.channels.cache.get(LOG_CHANNEL_ID);
+    const logChannel = interaction.guild.channels.cache.get(CHANNEL_IDS.logs);
     if (logChannel) {
       const logEmbed = new EmbedBuilder()
         .setTitle('📤 Embed Sent')
@@ -114,7 +114,7 @@ export async function buildEmbedPreview(interaction, embedData, client, allowedR
       console.warn('Log channel not found. Skipping embed log.');
     }
 
-    await selectInteraction.update({ content: `Embed sent to <#${channel.id}>!`, embeds: [], components: [], ephemeral: true });
+    await selectInteraction.update({ content: `Embed sent to <#${channel.id}>!`, embeds: [], components: [], flags: 64 });
     return reply;
   }
   return reply;
