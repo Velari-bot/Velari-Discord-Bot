@@ -1,10 +1,14 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from 'discord.js';
 
 export const data = new SlashCommandBuilder()
   .setName('portfolio')
   .setDescription('Showcase the Velari bot, apps, websites, and GFX portfolio');
 
 export async function execute(interaction) {
+  // Prepare image attachments
+  const routelagImage = new AttachmentBuilder('./Routelag APp.png', { name: 'Routelag APp.png' });
+  const tweakAppImage = new AttachmentBuilder('./Tweak App.png', { name: 'Tweak App.png' });
+
   const embed = new EmbedBuilder()
     .setTitle('🎨 Velari Portfolio')
     .setColor('#5865F2')
@@ -22,10 +26,7 @@ export async function execute(interaction) {
 
   await interaction.reply({
     embeds: [embed],
-    files: [
-      { attachment: './Routelag APp.png', name: 'Routelag APp.png' },
-      { attachment: './Tweak App.png', name: 'Tweak App.png' }
-    ],
+    files: [routelagImage, tweakAppImage],
     ephemeral: false
   });
 } 
