@@ -72,10 +72,23 @@ export async function buildEmbedPreview(interaction, embedData, client, allowedR
     // Permission check using config.js
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const memberRoleIds = member.roles.cache.map(r => r.id);
+    // Debug output: show user's role IDs and allowed role IDs
+    try {
+      await buttonInteraction.followUp({
+        content: `Debug: Your role IDs: ${memberRoleIds.join(", ")}\nAllowed: ${ALLOWED_ROLES.join(", ")}\nOverride: ${OVERRIDE_ROLES.join(", ")}`,
+        ephemeral: true
+      });
+    } catch (e) { /* ignore if already replied */ }
     const hasPublicAccess = ALLOWED_ROLES.some(roleId => memberRoleIds.includes(roleId));
     const isOverride = OVERRIDE_ROLES.some(roleId => memberRoleIds.includes(roleId));
     if (!hasPublicAccess && !isOverride) {
-      await buttonInteraction.update({ content: "🚫 You don't have permission to send embeds to public channels.", embeds: [], components: [], flags: 64 });
+      try {
+        await buttonInteraction.update({ content: "🚫 You don't have permission to send embeds to public channels.", embeds: [], components: [], flags: 64 });
+      } catch (e) {
+        try {
+          await buttonInteraction.reply({ content: "🚫 You don't have permission to send embeds to public channels.", ephemeral: true });
+        } catch (e2) { /* ignore */ }
+      }
       return reply;
     }
     // Channel select menu
