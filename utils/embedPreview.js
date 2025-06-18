@@ -71,9 +71,9 @@ export async function buildEmbedPreview(interaction, embedData, client, allowedR
   if (buttonInteraction.customId === 'embed_send') {
     // Permission check using config.js
     const member = await interaction.guild.members.fetch(interaction.user.id);
-    const memberRoles = member.roles.cache.map(r => r.name);
-    const hasPublicAccess = ALLOWED_ROLES.some(role => memberRoles.includes(role));
-    const isOverride = OVERRIDE_ROLES.some(role => memberRoles.includes(role));
+    const memberRoleIds = member.roles.cache.map(r => r.id);
+    const hasPublicAccess = ALLOWED_ROLES.some(roleId => memberRoleIds.includes(roleId));
+    const isOverride = OVERRIDE_ROLES.some(roleId => memberRoleIds.includes(roleId));
     if (!hasPublicAccess && !isOverride) {
       await buttonInteraction.update({ content: "🚫 You don't have permission to send embeds to public channels.", embeds: [], components: [], flags: 64 });
       return reply;
