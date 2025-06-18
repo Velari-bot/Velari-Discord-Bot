@@ -6,7 +6,7 @@ export const data = new SlashCommandBuilder()
   .setDescription('Fetches a random cat image.');
 
 export async function execute(interaction) {
-  // Fetch a random cat image from an API
+  await interaction.deferReply();
   try {
     const res = await fetch('https://api.thecatapi.com/v1/images/search');
     const data = await res.json();
@@ -16,8 +16,8 @@ export async function execute(interaction) {
       .setTitle('🐱 Random Cat')
       .setImage(imageUrl)
       .setColor(0xFFC0CB);
-    await interaction.reply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   } catch (err) {
-    await interaction.reply({ content: 'Failed to fetch a cat image.', ephemeral: true });
+    await interaction.editReply({ content: 'Failed to fetch a cat image.' });
   }
 } 

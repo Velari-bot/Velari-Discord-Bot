@@ -6,6 +6,7 @@ export const data = new SlashCommandBuilder()
   .setDescription('Fetches a random dog image.');
 
 export async function execute(interaction) {
+  await interaction.deferReply();
   try {
     const res = await fetch('https://dog.ceo/api/breeds/image/random');
     const data = await res.json();
@@ -15,8 +16,8 @@ export async function execute(interaction) {
       .setTitle('🐶 Random Dog')
       .setImage(imageUrl)
       .setColor(0xFFD700);
-    await interaction.reply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   } catch (err) {
-    await interaction.reply({ content: 'Failed to fetch a dog image.', ephemeral: true });
+    await interaction.editReply({ content: 'Failed to fetch a dog image.' });
   }
 } 

@@ -6,6 +6,7 @@ export const data = new SlashCommandBuilder()
   .setDescription('Fetches a random meme from Reddit.');
 
 export async function execute(interaction) {
+  await interaction.deferReply();
   try {
     const res = await fetch('https://www.reddit.com/r/memes/random/.json');
     const json = await res.json();
@@ -17,8 +18,8 @@ export async function execute(interaction) {
       .setURL('https://reddit.com' + post.permalink)
       .setFooter({ text: `👍 ${post.ups} | 💬 ${post.num_comments}` })
       .setColor(0x00BFFF);
-    await interaction.reply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   } catch (err) {
-    await interaction.reply({ content: 'Failed to fetch a meme.', ephemeral: true });
+    await interaction.editReply({ content: 'Failed to fetch a meme.' });
   }
 } 
