@@ -63,11 +63,24 @@ export async function execute(interaction, client) {
     new ActionRowBuilder().addComponents(thumbInput)
   );
 
-  await interaction.showModal(modal);
+  try {
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.showModal(modal);
+    }
+  } catch (err) {
+    console.error('Error showing modal:', err);
+    return;
+  }
 
   // Modal submit handler
   const filter = i => i.customId === 'embedbuilder_modal' && i.user.id === interaction.user.id;
-  const modalInteraction = await interaction.awaitModalSubmit({ filter, time: 5 * 60 * 1000 }).catch(() => null);
+  let modalInteraction = null;
+  try {
+    modalInteraction = await interaction.awaitModalSubmit({ filter, time: 5 * 60 * 1000 });
+  } catch (err) {
+    // Timeout or error, do not respond again
+    return;
+  }
   if (!modalInteraction) return;
 
   // Initial embed data
