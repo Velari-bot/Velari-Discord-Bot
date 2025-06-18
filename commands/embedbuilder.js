@@ -21,9 +21,10 @@ export const data = new SlashCommandBuilder()
 
 /**
  * Handler for the initial embedbuilder modal submission
+ * Sends the embed directly to the same channel, no preview or extra buttons.
  */
 export async function handleEmbedBuilderModal(interaction, client) {
-  // Initial embed data
+  // Build embed data from modal
   let embedData = {
     title: interaction.fields.getTextInputValue('embed_title'),
     description: interaction.fields.getTextInputValue('embed_description'),
@@ -33,8 +34,20 @@ export async function handleEmbedBuilderModal(interaction, client) {
     fields: [],
     timestamp: false
   };
-  userEmbedState.set(interaction.user.id, { embedData });
-  await showPreviewWithActions(interaction, embedData, client);
+
+  // Build the embed
+  const embed = new EmbedBuilder()
+    .setDescription(embedData.description)
+    .setColor(embedData.color);
+  if (embedData.title) embed.setTitle(embedData.title);
+  if (embedData.footer) embed.setFooter({ text: embedData.footer });
+  if (embedData.thumbnail) embed.setThumbnail(embedData.thumbnail);
+
+  // Send the embed to the same channel
+  await interaction.channel.send({ embeds: [embed] });
+
+  // Ephemeral confirmation
+  await interaction.reply({ content: '✅ Embed sent to this channel!', ephemeral: true });
 }
 
 /**
