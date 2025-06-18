@@ -19,88 +19,37 @@ export const data = new SlashCommandBuilder()
   .setName('embedbuilder')
   .setDescription('Create and preview a custom embed message');
 
-export async function execute(interaction, client) {
-  // Show modal for essential fields
-  const modal = new ModalBuilder()
-    .setCustomId('embedbuilder_modal')
-    .setTitle('Embed Builder');
-
-  const titleInput = new TextInputBuilder()
-    .setCustomId('embed_title')
-    .setLabel('Title (optional)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  const descInput = new TextInputBuilder()
-    .setCustomId('embed_description')
-    .setLabel('Description (required)')
-    .setStyle(TextInputStyle.Paragraph)
-    .setRequired(true);
-
-  const colorInput = new TextInputBuilder()
-    .setCustomId('embed_color')
-    .setLabel('Color Hex (e.g. #FF4F8B)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  const footerInput = new TextInputBuilder()
-    .setCustomId('embed_footer')
-    .setLabel('Footer Text (optional)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  const thumbInput = new TextInputBuilder()
-    .setCustomId('embed_thumbnail')
-    .setLabel('Thumbnail URL (optional)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  modal.addComponents(
-    new ActionRowBuilder().addComponents(titleInput),
-    new ActionRowBuilder().addComponents(descInput),
-    new ActionRowBuilder().addComponents(colorInput),
-    new ActionRowBuilder().addComponents(footerInput),
-    new ActionRowBuilder().addComponents(thumbInput)
-  );
-
-  try {
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.showModal(modal);
-    }
-  } catch (err) {
-    console.error('Error showing modal:', err);
-    return;
-  }
-
-  // Modal submit handler
-  const filter = i => i.customId === 'embedbuilder_modal' && i.user.id === interaction.user.id;
-  let modalInteraction = null;
-  try {
-    modalInteraction = await interaction.awaitModalSubmit({ filter, time: 5 * 60 * 1000 });
-  } catch (err) {
-    // Timeout or error, do not respond again
-    return;
-  }
-  if (!modalInteraction) return;
-
+/**
+ * Handler for the initial embedbuilder modal submission
+ */
+export async function handleEmbedBuilderModal(interaction, client) {
   // Initial embed data
   let embedData = {
-    title: modalInteraction.fields.getTextInputValue('embed_title'),
-    description: modalInteraction.fields.getTextInputValue('embed_description'),
-    color: modalInteraction.fields.getTextInputValue('embed_color') || '#FF4F8B',
-    footer: modalInteraction.fields.getTextInputValue('embed_footer'),
-    thumbnail: modalInteraction.fields.getTextInputValue('embed_thumbnail'),
+    title: interaction.fields.getTextInputValue('embed_title'),
+    description: interaction.fields.getTextInputValue('embed_description'),
+    color: interaction.fields.getTextInputValue('embed_color') || '#FF4F8B',
+    footer: interaction.fields.getTextInputValue('embed_footer'),
+    thumbnail: interaction.fields.getTextInputValue('embed_thumbnail'),
     fields: [],
     timestamp: false
   };
+  userEmbedState.set(interaction.user.id, { embedData });
+  await showPreviewWithActions(interaction, embedData, client);
+}
 
-  await showPreviewWithActions(modalInteraction, embedData, client);
+/**
+ * Handler for all embedbuilder-related button interactions
+ */
+export async function handleEmbedButton(interaction, client) {
+  const state = userEmbedState.get(interaction.user.id);
+  if (!state) {
+    await interaction.reply({ content: 'No embed session found. Please run /embedbuilder again.', ephemeral: true });
+    return;
+  }
+  await showPreviewWithActions(interaction, state.embedData, client);
 }
 
 async function showPreviewWithActions(interaction, embedData, client) {
-  // Save state
-  userEmbedState.set(interaction.user.id, { embedData });
-
   // Build preview
   const previewMsg = await buildEmbedPreview(interaction, embedData, client, ALLOWED_ROLES, getActionRows());
 
@@ -295,4 +244,60 @@ function getActionRows() {
     }
   }
   return rows;
+}
+
+/**
+ * Main /embedbuilder command execute function: only shows the modal.
+ */
+export async function execute(interaction, client) {
+  const modal = new ModalBuilder()
+    .setCustomId('embedbuilder_modal')
+    .setTitle('Embed Builder');
+
+  const titleInput = new TextInputBuilder()
+    .setCustomId('embed_title')
+    .setLabel('Title (optional)')
+    .setStyle(TextInputStyle.Short)
+    .setRequired(false);
+
+  const descInput = new TextInputBuilder()
+    .setCustomId('embed_description')
+    .setLabel('Description (required)')
+    .setStyle(TextInputStyle.Paragraph)
+    .setRequired(true);
+
+  const colorInput = new TextInputBuilder()
+    .setCustomId('embed_color')
+    .setLabel('Color Hex (e.g. #FF4F8B)')
+    .setStyle(TextInputStyle.Short)
+    .setRequired(false);
+
+  const footerInput = new TextInputBuilder()
+    .setCustomId('embed_footer')
+    .setLabel('Footer Text (optional)')
+    .setStyle(TextInputStyle.Short)
+    .setRequired(false);
+
+  const thumbInput = new TextInputBuilder()
+    .setCustomId('embed_thumbnail')
+    .setLabel('Thumbnail URL (optional)')
+    .setStyle(TextInputStyle.Short)
+    .setRequired(false);
+
+  modal.addComponents(
+    new ActionRowBuilder().addComponents(titleInput),
+    new ActionRowBuilder().addComponents(descInput),
+    new ActionRowBuilder().addComponents(colorInput),
+    new ActionRowBuilder().addComponents(footerInput),
+    new ActionRowBuilder().addComponents(thumbInput)
+  );
+
+  try {
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.showModal(modal);
+    }
+  } catch (err) {
+    console.error('Error showing modal:', err);
+    return;
+  }
 } 

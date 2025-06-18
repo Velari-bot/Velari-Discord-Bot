@@ -3,6 +3,7 @@ import { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder } from 'd
 import fs from 'fs';
 import path from 'path';
 import { permabannedIds } from './utils/permaban.js';
+import { handleEmbedBuilderModal, handleEmbedButton } from './commands/embedbuilder.js';
 
 const client = new Client({
   intents: [
@@ -179,9 +180,18 @@ client.on('interactionCreate', async interaction => {
         await utilityModule.handleAnnouncementModal(interaction, client);
       } else if (customId === 'suggestion_modal') {
         await suggestModule.handleSuggestionModal(interaction, client);
+      } else if (customId === 'embedbuilder_modal') {
+        await handleEmbedBuilderModal(interaction, client);
+        return;
       } else {
         console.log(`Unknown modal interaction: ${customId}`);
       }
+    }
+
+    // Handle embedbuilder button interactions
+    if (interaction.isButton() && interaction.customId.startsWith('embed_')) {
+      await handleEmbedButton(interaction, client);
+      return;
     }
   } catch (error) {
     console.error('Error handling interaction:', error);
