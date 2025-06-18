@@ -2,22 +2,21 @@ import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import fetch from 'node-fetch';
 
 export const data = new SlashCommandBuilder()
-  .setName('cat')
-  .setDescription('Fetches a random cat image.');
+  .setName('dog')
+  .setDescription('Fetches a random dog image.');
 
 export async function execute(interaction) {
-  // Fetch a random cat image from an API
   try {
-    const res = await fetch('https://api.thecatapi.com/v1/images/search');
+    const res = await fetch('https://dog.ceo/api/breeds/image/random');
     const data = await res.json();
-    const imageUrl = data[0]?.url;
+    const imageUrl = data.message;
     if (!imageUrl) throw new Error('No image found');
     const embed = new EmbedBuilder()
-      .setTitle('🐱 Random Cat')
+      .setTitle('🐶 Random Dog')
       .setImage(imageUrl)
-      .setColor(0xFFC0CB);
+      .setColor(0xFFD700);
     await interaction.reply({ embeds: [embed] });
   } catch (err) {
-    await interaction.reply({ content: 'Failed to fetch a cat image.', ephemeral: true });
+    await interaction.reply({ content: 'Failed to fetch a dog image.', ephemeral: true });
   }
 } 
