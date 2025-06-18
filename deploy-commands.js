@@ -25,7 +25,7 @@ for (const file of commandFiles) {
 }
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
-const guildIds = ['1381793479495127180', '1254224101342449694']; // Replace with your actual guild IDs
+const guildIds = ['1381793479495127180', '1254224101342449694', '1384640904798802031']; // Added new guild ID
 
 (async () => {
   try {
