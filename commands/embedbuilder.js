@@ -52,7 +52,6 @@ export async function handleEmbedButton(interaction, client) {
 async function showPreviewWithActions(interaction, embedData, client) {
   // Build preview
   const previewMsg = await buildEmbedPreview(interaction, embedData, client, ALLOWED_ROLES, getActionRows());
-
   // Save preview message ID for timeout/cancel
   if (previewMsg && previewMsg.id) {
     clearTimeout(userEmbedState.get(interaction.user.id)?.timeout);
@@ -67,159 +66,7 @@ async function showPreviewWithActions(interaction, embedData, client) {
       }, PREVIEW_TIMEOUT)
     });
   }
-
-  // Button handler
-  const buttonFilter = i => [
-    'embed_add_field', 'embed_remove_field', 'embed_list_fields',
-    'embed_add_image', 'embed_add_footer_icon', 'embed_toggle_timestamp',
-    'embed_send', 'embed_edit', 'embed_cancel'
-  ].includes(i.customId) && i.user.id === interaction.user.id;
-  const buttonInteraction = await interaction.channel.awaitMessageComponent({ filter: buttonFilter, time: PREVIEW_TIMEOUT }).catch(() => null);
-  if (!buttonInteraction) return;
-
-  if (buttonInteraction.customId === 'embed_cancel') {
-    await buttonInteraction.update({ content: 'Embed creation cancelled.', embeds: [], components: [], ephemeral: true });
-    try { await previewMsg.delete(); } catch {}
-    userEmbedState.delete(interaction.user.id);
-    return;
-  }
-  if (buttonInteraction.customId === 'embed_edit') {
-    await buttonInteraction.update({ content: 'Please run /embedbuilder again to edit.', embeds: [], components: [], ephemeral: true });
-    try { await previewMsg.delete(); } catch {}
-    userEmbedState.delete(interaction.user.id);
-    return;
-  }
-  if (buttonInteraction.customId === 'embed_send') {
-    // Send logic handled in buildEmbedPreview
-    try { await previewMsg.delete(); } catch {}
-    userEmbedState.delete(interaction.user.id);
-    return;
-  }
-  if (buttonInteraction.customId === 'embed_toggle_timestamp') {
-    embedData.timestamp = !embedData.timestamp;
-    await showPreviewWithActions(buttonInteraction, embedData, client);
-    return;
-  }
-  if (buttonInteraction.customId === 'embed_add_image') {
-    // Show modal for main image
-    const imageModal = new ModalBuilder()
-      .setCustomId('embedbuilder_image')
-      .setTitle('Add Main Image');
-    imageModal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId('embed_image')
-          .setLabel('Main Image URL')
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-      )
-    );
-    await buttonInteraction.showModal(imageModal);
-    const imageModalInteraction = await buttonInteraction.awaitModalSubmit({ filter: i => i.customId === 'embedbuilder_image' && i.user.id === buttonInteraction.user.id, time: 5 * 60 * 1000 }).catch(() => null);
-    if (!imageModalInteraction) return;
-    embedData.image = imageModalInteraction.fields.getTextInputValue('embed_image');
-    await showPreviewWithActions(imageModalInteraction, embedData, client);
-    return;
-  }
-  if (buttonInteraction.customId === 'embed_add_footer_icon') {
-    // Show modal for footer icon
-    const iconModal = new ModalBuilder()
-      .setCustomId('embedbuilder_footer_icon')
-      .setTitle('Add Footer Icon');
-    iconModal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId('embed_footer_icon')
-          .setLabel('Footer Icon URL')
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-      )
-    );
-    await buttonInteraction.showModal(iconModal);
-    const iconModalInteraction = await buttonInteraction.awaitModalSubmit({ filter: i => i.customId === 'embedbuilder_footer_icon' && i.user.id === buttonInteraction.user.id, time: 5 * 60 * 1000 }).catch(() => null);
-    if (!iconModalInteraction) return;
-    embedData.footerIcon = iconModalInteraction.fields.getTextInputValue('embed_footer_icon');
-    await showPreviewWithActions(iconModalInteraction, embedData, client);
-    return;
-  }
-  if (buttonInteraction.customId === 'embed_add_field') {
-    // Show modal for a custom field
-    const fieldModal = new ModalBuilder()
-      .setCustomId('embedbuilder_field')
-      .setTitle('Add Custom Field');
-    fieldModal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId('field_name')
-          .setLabel('Field Name')
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-      ),
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId('field_value')
-          .setLabel('Field Value')
-          .setStyle(TextInputStyle.Paragraph)
-          .setRequired(true)
-      ),
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId('field_inline')
-          .setLabel('Inline? (yes/no)')
-          .setStyle(TextInputStyle.Short)
-          .setRequired(false)
-      )
-    );
-    await buttonInteraction.showModal(fieldModal);
-    const fieldModalInteraction = await buttonInteraction.awaitModalSubmit({ filter: i => i.customId === 'embedbuilder_field' && i.user.id === buttonInteraction.user.id, time: 5 * 60 * 1000 }).catch(() => null);
-    if (!fieldModalInteraction) return;
-    embedData.fields = embedData.fields || [];
-    embedData.fields.push({
-      name: fieldModalInteraction.fields.getTextInputValue('field_name'),
-      value: fieldModalInteraction.fields.getTextInputValue('field_value'),
-      inline: fieldModalInteraction.fields.getTextInputValue('field_inline')?.toLowerCase().startsWith('y') || false
-    });
-    await showPreviewWithActions(fieldModalInteraction, embedData, client);
-    return;
-  }
-  if (buttonInteraction.customId === 'embed_remove_field') {
-    // Show dropdown of current fields
-    if (!embedData.fields || embedData.fields.length === 0) {
-      await buttonInteraction.reply({ content: 'No fields to remove.', ephemeral: true });
-      await showPreviewWithActions(buttonInteraction, embedData, client);
-      return;
-    }
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('remove_field_select')
-      .setPlaceholder('Select a field to remove')
-      .addOptions(embedData.fields.map((f, i) => ({ label: `${i + 1}: ${f.name}`, value: i.toString() })));
-    const selectRow = new ActionRowBuilder().addComponents(selectMenu);
-    await buttonInteraction.reply({ content: 'Select a field to remove:', components: [selectRow], ephemeral: true });
-    const selectFilter = i => i.customId === 'remove_field_select' && i.user.id === buttonInteraction.user.id;
-    const selectInteraction = await buttonInteraction.channel.awaitMessageComponent({ filter: selectFilter, time: 5 * 60 * 1000 }).catch(() => null);
-    if (!selectInteraction) return;
-    const idx = parseInt(selectInteraction.values[0]);
-    embedData.fields.splice(idx, 1);
-    await selectInteraction.update({ content: `Field removed.`, components: [], ephemeral: true });
-    await showPreviewWithActions(selectInteraction, embedData, client);
-    return;
-  }
-  if (buttonInteraction.customId === 'embed_list_fields') {
-    // Show ephemeral embed listing all fields
-    if (!embedData.fields || embedData.fields.length === 0) {
-      await buttonInteraction.reply({ content: 'No fields added yet.', ephemeral: true });
-    } else {
-      const listEmbed = new EmbedBuilder()
-        .setTitle('Current Fields')
-        .setDescription(embedData.fields.map((f, i) => `**${i + 1}.** 
-Name: ${f.name}
-Inline: ${f.inline ? 'Yes' : 'No'}
-Value: ${f.value}`).join('\n\n'));
-      await buttonInteraction.reply({ embeds: [listEmbed], ephemeral: true });
-    }
-    await showPreviewWithActions(buttonInteraction, embedData, client);
-    return;
-  }
+  // No local modal or button handling here!
 }
 
 function getActionRows() {
@@ -300,4 +147,63 @@ export async function execute(interaction, client) {
     console.error('Error showing modal:', err);
     return;
   }
+}
+
+/**
+ * Handler for the embedbuilder_image modal submission
+ */
+export async function handleEmbedAddImageModal(interaction, client) {
+  const state = userEmbedState.get(interaction.user.id);
+  if (!state) {
+    await interaction.reply({ content: 'No embed session found. Please run /embedbuilder again.', ephemeral: true });
+    return;
+  }
+  state.embedData.image = interaction.fields.getTextInputValue('embed_image');
+  await showPreviewWithActions(interaction, state.embedData, client);
+}
+
+/**
+ * Handler for the embedbuilder_footer_icon modal submission
+ */
+export async function handleEmbedAddFooterIconModal(interaction, client) {
+  const state = userEmbedState.get(interaction.user.id);
+  if (!state) {
+    await interaction.reply({ content: 'No embed session found. Please run /embedbuilder again.', ephemeral: true });
+    return;
+  }
+  state.embedData.footerIcon = interaction.fields.getTextInputValue('embed_footer_icon');
+  await showPreviewWithActions(interaction, state.embedData, client);
+}
+
+/**
+ * Handler for the embedbuilder_field modal submission
+ */
+export async function handleEmbedAddFieldModal(interaction, client) {
+  const state = userEmbedState.get(interaction.user.id);
+  if (!state) {
+    await interaction.reply({ content: 'No embed session found. Please run /embedbuilder again.', ephemeral: true });
+    return;
+  }
+  state.embedData.fields = state.embedData.fields || [];
+  state.embedData.fields.push({
+    name: interaction.fields.getTextInputValue('field_name'),
+    value: interaction.fields.getTextInputValue('field_value'),
+    inline: interaction.fields.getTextInputValue('field_inline')?.toLowerCase().startsWith('y') || false
+  });
+  await showPreviewWithActions(interaction, state.embedData, client);
+}
+
+/**
+ * Handler for the remove_field_select select menu
+ */
+export async function handleRemoveFieldSelect(interaction, client) {
+  const state = userEmbedState.get(interaction.user.id);
+  if (!state) {
+    await interaction.reply({ content: 'No embed session found. Please run /embedbuilder again.', ephemeral: true });
+    return;
+  }
+  const idx = parseInt(interaction.values[0]);
+  state.embedData.fields.splice(idx, 1);
+  await interaction.update({ content: `Field removed.`, components: [], ephemeral: true });
+  await showPreviewWithActions(interaction, state.embedData, client);
 } 
