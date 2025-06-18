@@ -65,12 +65,6 @@ export async function execute(interaction, client) {
 
   try {
     if (!interaction.replied && !interaction.deferred) {
-      // If more than 2 seconds have passed, defer the reply
-      setTimeout(async () => {
-        if (!interaction.replied && !interaction.deferred) {
-          try { await interaction.deferReply({ ephemeral: true }); } catch (e) {}
-        }
-      }, 2000);
       await interaction.showModal(modal);
     }
   } catch (err) {
