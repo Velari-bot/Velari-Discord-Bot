@@ -141,7 +141,7 @@ async function handleBan(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
         return await interaction.reply({
             content: '❌ **You need "Ban Members" permission to use this command.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -152,7 +152,7 @@ async function handleBan(interaction, client) {
     if (!member.bannable) {
         return await interaction.reply({
             content: '❌ **I cannot ban this user. They may have higher permissions than me.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -176,7 +176,7 @@ async function handleBan(interaction, client) {
         console.error('Error banning user:', error);
         await interaction.reply({
             content: '❌ **Failed to ban the user. Please try again.**',
-            flags: 64
+            ephemeral: true
         });
     }
 }
@@ -185,7 +185,7 @@ async function handleKick(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.KickMembers)) {
         return await interaction.reply({
             content: '❌ **You need "Kick Members" permission to use this command.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -196,7 +196,7 @@ async function handleKick(interaction, client) {
     if (!member.kickable) {
         return await interaction.reply({
             content: '❌ **I cannot kick this user. They may have higher permissions than me.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -220,7 +220,7 @@ async function handleKick(interaction, client) {
         console.error('Error kicking user:', error);
         await interaction.reply({
             content: '❌ **Failed to kick the user. Please try again.**',
-            flags: 64
+            ephemeral: true
         });
     }
 }
@@ -229,7 +229,7 @@ async function handleTimeout(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
         return await interaction.reply({
             content: '❌ **You need "Moderate Members" permission to use this command.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -243,14 +243,14 @@ async function handleTimeout(interaction, client) {
     if (!duration) {
         return await interaction.reply({
             content: '❌ **Invalid duration format. Use: 1s, 1m, 1h, 1d (max 28 days)**',
-            flags: 64
+            ephemeral: true
         });
     }
 
     if (duration > 28 * 24 * 60 * 60 * 1000) { // 28 days in ms
         return await interaction.reply({
             content: '❌ **Timeout duration cannot exceed 28 days.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -274,7 +274,7 @@ async function handleTimeout(interaction, client) {
         console.error('Error timing out user:', error);
         await interaction.reply({
             content: '❌ **Failed to timeout the user. Please try again.**',
-            flags: 64
+            ephemeral: true
         });
     }
 }
@@ -283,7 +283,7 @@ async function handleWarn(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
         return await interaction.reply({
             content: '❌ **You need "Moderate Members" permission to use this command.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -308,7 +308,7 @@ async function handleWarn(interaction, client) {
         console.error('Error warning user:', error);
         await interaction.reply({
             content: '❌ **Failed to warn the user. Please try again.**',
-            flags: 64
+            ephemeral: true
         });
     }
 }
@@ -317,7 +317,7 @@ async function handleModlogs(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
         return await interaction.reply({
             content: '❌ **You need "Moderate Members" permission to use this command.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -327,7 +327,7 @@ async function handleModlogs(interaction, client) {
     if (!logs || logs.length === 0) {
         return await interaction.reply({
             content: `📋 **No moderation logs found for ${user.tag}.**`,
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -350,14 +350,14 @@ async function handleModlogs(interaction, client) {
         });
     }
 
-    await interaction.reply({ embeds: [embed], flags: 64 });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
 async function handlePurge(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
         return await interaction.reply({
             content: '❌ **You need "Manage Messages" permission to use this command.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -370,7 +370,7 @@ async function handlePurge(interaction, client) {
         if (filteredMessages.size === 0) {
             return await interaction.reply({
                 content: '❌ **No messages found to delete.**',
-                flags: 64
+                ephemeral: true
             });
         }
 
@@ -383,13 +383,13 @@ async function handlePurge(interaction, client) {
             .setFooter({ text: 'Velari Moderation System', iconURL: interaction.guild.iconURL() })
             .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], flags: 64 });
+        await interaction.reply({ embeds: [embed], ephemeral: true });
         
     } catch (error) {
         console.error('Error purging messages:', error);
         await interaction.reply({
             content: '❌ **Failed to delete messages. Messages older than 14 days cannot be bulk deleted.**',
-            flags: 64
+            ephemeral: true
         });
     }
 }
@@ -398,7 +398,7 @@ async function handleSnipe(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
         return await interaction.reply({
             content: '❌ **You need "Manage Messages" permission to use this command.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -408,7 +408,7 @@ async function handleSnipe(interaction, client) {
     if (!lastDeletedMessage) {
         return await interaction.reply({
             content: '❌ **No recently deleted messages found in this channel.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -420,7 +420,7 @@ async function handleSnipe(interaction, client) {
         .setFooter({ text: 'Velari Moderation System', iconURL: interaction.guild.iconURL() })
         .setTimestamp(lastDeletedMessage.timestamp);
 
-    await interaction.reply({ embeds: [embed], flags: 64 });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
 // Utility functions

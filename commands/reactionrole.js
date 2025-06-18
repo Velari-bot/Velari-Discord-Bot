@@ -44,7 +44,7 @@ async function handleCreateReactionRole(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageRoles)) {
         return await interaction.reply({
             content: '❌ **You need "Manage Roles" permission to create reaction roles.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -61,7 +61,7 @@ async function handleCreateReactionRole(interaction, client) {
     if (roles.length === 0) {
         return await interaction.reply({
             content: '❌ **At least one role is required.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -70,7 +70,7 @@ async function handleCreateReactionRole(interaction, client) {
         if (role.position >= interaction.guild.members.me.roles.highest.position) {
             return await interaction.reply({
                 content: `❌ **I cannot manage the role ${role.name}. It is higher than my highest role.**`,
-                flags: 64
+                ephemeral: true
             });
         }
     }
@@ -124,13 +124,13 @@ async function handleCreateReactionRole(interaction, client) {
             .setFooter({ text: 'Velari Reaction Role System', iconURL: interaction.guild.iconURL() })
             .setTimestamp();
 
-        await interaction.reply({ embeds: [successEmbed], flags: 64 });
+        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
 
     } catch (error) {
         console.error('Error creating reaction role message:', error);
         await interaction.reply({
             content: '❌ **Failed to create reaction role message. Please check my permissions.**',
-            flags: 64
+            ephemeral: true
         });
     }
 }
@@ -143,7 +143,7 @@ export async function handleReactionRoleButton(interaction, client) {
     if (!role) {
         return await interaction.reply({
             content: '❌ **Role not found.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -161,7 +161,7 @@ export async function handleReactionRoleButton(interaction, client) {
                 .setFooter({ text: 'Velari Reaction Role System', iconURL: interaction.guild.iconURL() })
                 .setTimestamp();
 
-            await interaction.reply({ embeds: [embed], flags: 64 });
+            await interaction.reply({ embeds: [embed], ephemeral: true });
         } else {
             await member.roles.add(role, 'Reaction role assignment');
             
@@ -172,13 +172,13 @@ export async function handleReactionRoleButton(interaction, client) {
                 .setFooter({ text: 'Velari Reaction Role System', iconURL: interaction.guild.iconURL() })
                 .setTimestamp();
 
-            await interaction.reply({ embeds: [embed], flags: 64 });
+            await interaction.reply({ embeds: [embed], ephemeral: true });
         }
     } catch (error) {
         console.error('Error managing reaction role:', error);
         await interaction.reply({
             content: '❌ **Failed to manage role. Please contact an administrator.**',
-            flags: 64
+            ephemeral: true
         });
     }
 } 

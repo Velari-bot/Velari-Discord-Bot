@@ -463,7 +463,7 @@ async function handleSend(interaction, client) {
   const duration = interaction.options.getString('duration');
   const admin = interaction.user;
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply();
 
   // Automatically select the correct key generation function
   let key;

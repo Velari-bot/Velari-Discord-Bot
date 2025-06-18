@@ -13,7 +13,7 @@ export async function execute(interaction) {
   const user = interaction.options.getUser('user');
   const guild = interaction.guild;
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply();
 
   try {
     // Fetch all invites for the guild

@@ -105,11 +105,22 @@ client.on('interactionCreate', async interaction => {
       const myKeysModule = await import('./commands/mykeys.js');
       const keyDashboardModule = await import('./commands/keydashboard.js');
       const reviewModule = await import('./commands/review.js');
+      const trackOrderModule = await import('./commands/trackorderpanel.js');
+      const orderPanelModule = await import('./commands/orderpanel.js');
+      const supportPanelModule = await import('./commands/supportpanel.js');
+      const priceModule = await import('./commands/price.js');
+      const portfolioModule = await import('./commands/portfolio.js');
       
       if (customId === 'create_ticket') {
         await ticketModule.handleCreateTicket(interaction, client);
       } else if (customId === 'close_ticket') {
         await ticketModule.handleCloseTicketButton(interaction, client);
+      } else if (customId === 'track_order_button') {
+        await trackOrderModule.handleTrackOrderButton(interaction, client);
+      } else if (customId === 'open_order_ticket') {
+        await orderPanelModule.handleCreateOrderTicket(interaction, client);
+      } else if (customId === 'open_support_ticket') {
+        await supportPanelModule.handleCreateSupportTicket(interaction, client);
       } else if (customId.startsWith('reactionrole_')) {
         await reactionRoleModule.handleReactionRoleButton(interaction, client);
       } else if (customId.startsWith('suggestion_')) {
@@ -122,6 +133,10 @@ client.on('interactionCreate', async interaction => {
         await keyDashboardModule.handleDashboardButton(interaction, client);
       } else if (customId.startsWith('review_')) {
         await reviewModule.handleReviewButton(interaction, client);
+      } else if (customId.startsWith('price_')) {
+        await priceModule.handlePriceButton(interaction, client);
+      } else if (customId.startsWith('portfolio_')) {
+        await portfolioModule.handlePortfolioButton(interaction, client);
       } else {
         console.log(`Unknown button interaction: ${customId}`);
       }
@@ -148,9 +163,18 @@ client.on('interactionCreate', async interaction => {
       const ticketModule = await import('./commands/ticket.js');
       const utilityModule = await import('./commands/utility.js');
       const suggestModule = await import('./commands/suggest.js');
+      const trackOrderModule = await import('./commands/trackorderpanel.js');
+      const orderPanelModule = await import('./commands/orderpanel.js');
+      const supportPanelModule = await import('./commands/supportpanel.js');
       
       if (customId === 'ticket_modal') {
         await ticketModule.handleTicketModal(interaction, client);
+      } else if (customId === 'track_order_modal') {
+        await trackOrderModule.handleTrackOrderModal(interaction, client);
+      } else if (customId === 'order_ticket_modal') {
+        await orderPanelModule.handleOrderTicketModal(interaction, client);
+      } else if (customId === 'support_ticket_modal') {
+        await supportPanelModule.handleSupportTicketModal(interaction, client);
       } else if (customId === 'announcement_modal') {
         await utilityModule.handleAnnouncementModal(interaction, client);
       } else if (customId === 'suggestion_modal') {
@@ -162,12 +186,31 @@ client.on('interactionCreate', async interaction => {
   } catch (error) {
     console.error('Error handling interaction:', error);
     
+    // Check if it's an unknown interaction error (timeout)
+    if (error.code === 10062) {
+      console.log('Interaction timed out or was already handled, skipping error message');
+      return;
+    }
+    
     const errorMessage = '❌ **An error occurred while processing your request.**';
     
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: errorMessage, flags: 64 });
-    } else {
-      await interaction.reply({ content: errorMessage, flags: 64 });
+    try {
+      // Check if interaction is still valid
+      if (!interaction.isRepliable()) {
+        console.log('Interaction cannot be replied to, skipping error message');
+        return;
+      }
+      
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({ content: errorMessage, ephemeral: true });
+      } else {
+        await interaction.reply({ content: errorMessage, ephemeral: true });
+      }
+    } catch (replyError) {
+      // Don't log if it's another unknown interaction error
+      if (replyError.code !== 10062) {
+        console.error('Error sending error message:', replyError);
+      }
     }
   }
 });

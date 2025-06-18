@@ -67,7 +67,7 @@ export async function execute(interaction) {
     }
   } catch (err) {
     console.error('[ERROR] Fetching order from Firestore:', err);
-    return interaction.reply({ content: '❌ Failed to fetch your order. Please try again later.', flags: 64 });
+    return interaction.reply({ content: '❌ Failed to fetch your order. Please try again later.', ephemeral: true });
   }
 
   if (!order) {
@@ -76,7 +76,7 @@ export async function execute(interaction) {
       .setDescription('We could not find any active or recent orders for you. To place an order, please open a ticket using `/ticketpanel` or the support panel.')
       .setColor(0xFF5555)
       .setFooter({ text: 'Lunary Services' });
-    return interaction.reply({ embeds: [embed], flags: 64 });
+    return interaction.reply({ embeds: [embed], ephemeral: true });
   }
 
   // Build progress bar
@@ -147,5 +147,5 @@ export async function execute(interaction) {
     ];
   }
 
-  await interaction.reply({ embeds: [embed], components, flags: 64 });
+  await interaction.reply({ embeds: [embed], components, ephemeral: true });
 } 

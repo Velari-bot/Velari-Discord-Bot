@@ -8,9 +8,9 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction) {
   if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
-    return interaction.reply({ content: '❌ You need Ban Members permission.', flags: 64 });
+    return interaction.reply({ content: '❌ You need Ban Members permission.', ephemeral: true });
   }
   const user = interaction.options.getUser('user');
   permabannedIds.delete(user.id);
-  await interaction.reply({ content: `✅ <@${user.id}> removed from permaban list.`, flags: 64 });
+  await interaction.reply({ content: `✅ <@${user.id}> removed from permaban list.`, ephemeral: true });
 } 

@@ -53,7 +53,7 @@ export async function execute(interaction) {
         .setDescription('No orders found matching your criteria.')
         .setColor(0xFF5555)
         .setFooter({ text: 'Lunary Services' });
-      return interaction.reply({ embeds: [embed], flags: 64 });
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     const orders = [];
@@ -71,7 +71,7 @@ export async function execute(interaction) {
         .setDescription('No orders found matching your criteria.')
         .setColor(0xFF5555)
         .setFooter({ text: 'Lunary Services' });
-      return interaction.reply({ embeds: [embed], flags: 64 });
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     // Create embed with order list
@@ -102,13 +102,13 @@ export async function execute(interaction) {
       embed.addFields({ name: '🔍 Filters Applied', value: filterInfo.join(' | '), inline: false });
     }
 
-    await interaction.reply({ embeds: [embed], flags: 64 });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
 
   } catch (error) {
     console.error('Error listing orders:', error);
     await interaction.reply({
       content: '❌ **Failed to fetch orders. Please try again.**',
-      flags: 64
+      ephemeral: true
     });
   }
 }

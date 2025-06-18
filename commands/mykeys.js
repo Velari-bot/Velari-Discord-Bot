@@ -10,7 +10,7 @@ export async function execute(interaction, client) {
   try {
     const userId = interaction.user.id;
     
-    await interaction.deferReply({ flags: 64 });
+    await interaction.deferReply();
 
     try {
       const userKeys = await getUserKeys(userId);
@@ -148,7 +148,7 @@ export async function execute(interaction, client) {
       console.error('Error retrieving user keys:', error);
       await interaction.editReply({
         content: '❌ **Failed to retrieve your keys. Please try again.**',
-        flags: 64
+        ephemeral: true
       });
     }
 
@@ -156,7 +156,7 @@ export async function execute(interaction, client) {
     console.error('Error in mykeys command:', error);
     await interaction.editReply({
       content: '❌ **An error occurred while processing your request.**',
-      flags: 64
+      ephemeral: true
     });
   }
 }
@@ -186,14 +186,14 @@ async function handleRedeemNewKey(interaction) {
 
     await interaction.reply({
       embeds: [embed],
-      flags: 64
+      ephemeral: true
     });
 
   } catch (error) {
     console.error('Error handling redeem new key:', error);
     await interaction.reply({
       content: '❌ **Failed to process request.**',
-      flags: 64
+      ephemeral: true
     });
   }
 }
@@ -207,14 +207,14 @@ async function handleSupportRequest(interaction) {
 
     await interaction.reply({
       embeds: [embed],
-      flags: 64
+      ephemeral: true
     });
 
   } catch (error) {
     console.error('Error handling support request:', error);
     await interaction.reply({
       content: '❌ **Failed to process support request.**',
-      flags: 64
+      ephemeral: true
     });
   }
 }
@@ -228,14 +228,14 @@ async function handleLearnMore(interaction) {
 
     await interaction.reply({
       embeds: [embed],
-      flags: 64
+      ephemeral: true
     });
 
   } catch (error) {
     console.error('Error handling learn more:', error);
     await interaction.reply({
       content: '❌ **Failed to load information.**',
-      flags: 64
+      ephemeral: true
     });
   }
 } 

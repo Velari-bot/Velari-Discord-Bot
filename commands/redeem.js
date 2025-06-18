@@ -16,7 +16,7 @@ export async function execute(interaction, client) {
     const userId = interaction.user.id;
     const username = interaction.user.username;
 
-    await interaction.deferReply({ flags: 64 });
+    await interaction.deferReply();
 
     try {
       // Format the key for consistency
@@ -79,7 +79,7 @@ export async function execute(interaction, client) {
 
       await interaction.followUp({ 
         embeds: [publicEmbed], 
-        flags: 64 
+        ephemeral: true 
       });
 
     } catch (error) {
@@ -95,7 +95,7 @@ export async function execute(interaction, client) {
 
       await interaction.editReply({
         content: errorMessage,
-        flags: 64
+        ephemeral: true
       });
     }
 
@@ -103,7 +103,7 @@ export async function execute(interaction, client) {
     console.error('Error in redeem command:', error);
     await interaction.editReply({
       content: '❌ **An error occurred while processing your request.**',
-      flags: 64
+      ephemeral: true
     });
   }
 }
@@ -137,7 +137,7 @@ async function handleViewUserKeys(interaction) {
     if (userKeys.length === 0) {
       await interaction.reply({
         content: '❌ **You haven\'t redeemed any keys yet.**',
-        flags: 64
+        ephemeral: true
       });
       return;
     }
@@ -174,14 +174,14 @@ async function handleViewUserKeys(interaction) {
 
     await interaction.reply({
       embeds: [embed],
-      flags: 64
+      ephemeral: true
     });
 
   } catch (error) {
     console.error('Error viewing user keys:', error);
     await interaction.reply({
       content: '❌ **Failed to retrieve your keys.**',
-      flags: 64
+      ephemeral: true
     });
   }
 }
@@ -195,14 +195,14 @@ async function handleSupportRequest(interaction) {
 
     await interaction.reply({
       embeds: [embed],
-      flags: 64
+      ephemeral: true
     });
 
   } catch (error) {
     console.error('Error handling support request:', error);
     await interaction.reply({
       content: '❌ **Failed to process support request.**',
-      flags: 64
+      ephemeral: true
     });
   }
 } 

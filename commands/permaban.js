@@ -8,7 +8,7 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction) {
   if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
-    return interaction.reply({ content: '❌ You need Ban Members permission.', flags: 64 });
+    return interaction.reply({ content: '❌ You need Ban Members permission.', ephemeral: true });
   }
   const user = interaction.options.getUser('user');
   permabannedIds.add(user.id);
@@ -17,5 +17,5 @@ export async function execute(interaction) {
     await member.ban({ reason: 'Permanently banned by bot.' });
     await user.send('🚫 You are permanently banned from this server.');
   } catch {}
-  await interaction.reply({ content: `🔨 Permanently banned <@${user.id}>.`, flags: 64 });
+  await interaction.reply({ content: `🔨 Permanently banned <@${user.id}>.`, ephemeral: true });
 } 

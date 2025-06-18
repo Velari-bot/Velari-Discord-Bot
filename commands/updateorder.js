@@ -56,7 +56,7 @@ export async function execute(interaction) {
     if (orderQuery.empty) {
       return interaction.reply({
         content: `❌ **Order ID \`${orderId}\` not found in the system.**`,
-        flags: 64
+        ephemeral: true
       });
     }
 
@@ -108,7 +108,7 @@ export async function execute(interaction) {
       embed.addFields({ name: '👨‍💼 Assigned Staff', value: assignedStaff.toString(), inline: true });
     }
 
-    await interaction.reply({ embeds: [embed], flags: 64 });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
 
     // DM the user about the status update
     try {
@@ -145,7 +145,7 @@ export async function execute(interaction) {
     console.error('Error updating order:', error);
     await interaction.reply({
       content: '❌ **Failed to update order. Please try again.**',
-      flags: 64
+      ephemeral: true
     });
   }
 }

@@ -16,7 +16,7 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction) {
   if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
-    return interaction.reply({ content: '❌ You need Manage Server permission to use this command.', flags: 64 });
+    return interaction.reply({ content: '❌ You need Manage Server permission to use this command.', ephemeral: true });
   }
   const embed = new EmbedBuilder()
     .setTitle('🛒 Order Digital Services')
@@ -94,7 +94,7 @@ export async function handleOrderTicketModal(interaction, client) {
       topic: `Order ID: ${orderId} | Order for ${interaction.user.tag}`
     });
   } catch (err) {
-    return interaction.reply({ content: '❌ Failed to create order channel. Please contact an admin.', flags: 64 });
+    return interaction.reply({ content: '❌ Failed to create order channel. Please contact an admin.', ephemeral: true });
   }
 
   const embed = new EmbedBuilder()
@@ -137,5 +137,5 @@ export async function handleOrderTicketModal(interaction, client) {
     });
   } catch (err) {}
 
-  await interaction.reply({ content: `✅ Your order ticket has been created! ${ticketChannel.toString()}`, flags: 64 });
+  await interaction.reply({ content: `✅ Your order ticket has been created! ${ticketChannel.toString()}`, ephemeral: true });
 } 

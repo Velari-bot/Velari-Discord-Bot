@@ -8,15 +8,15 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction) {
   if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-    return interaction.reply({ content: '❌ You need Moderate Members permission.', flags: 64 });
+    return interaction.reply({ content: '❌ You need Moderate Members permission.', ephemeral: true });
   }
   const user = interaction.options.getUser('user');
   const reason = interaction.options.getString('reason') || 'No reason provided';
   const member = await interaction.guild.members.fetch(user.id);
   try {
     await member.timeout(28 * 24 * 60 * 60 * 1000, reason); // 28 days (max allowed by Discord)
-    await interaction.reply({ content: `🔇 <@${user.id}> has been muted.`, flags: 64 });
+    await interaction.reply({ content: `🔇 <@${user.id}> has been muted.`, ephemeral: true });
   } catch (err) {
-    await interaction.reply({ content: '❌ Failed to mute the user. Check my permissions and role position.', flags: 64 });
+    await interaction.reply({ content: '❌ Failed to mute the user. Check my permissions and role position.', ephemeral: true });
   }
 } 

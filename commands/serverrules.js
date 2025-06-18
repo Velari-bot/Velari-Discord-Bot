@@ -8,7 +8,7 @@ export async function execute(interaction) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
         return await interaction.reply({
             content: '❌ **You need "Manage Server" permission to use this command.**',
-            flags: 64
+            ephemeral: true
         });
     }
     const rulesEmbed = new EmbedBuilder()

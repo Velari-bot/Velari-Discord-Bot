@@ -15,7 +15,7 @@ for (let i = 3; i <= 10; i++) {
 
 export async function execute(interaction) {
   if (!interaction.member.permissions.has(PermissionFlagsBits.SendMessages)) {
-    return interaction.reply({ content: '❌ You need Send Messages permission.', flags: 64 });
+    return interaction.reply({ content: '❌ You need Send Messages permission.', ephemeral: true });
   }
   const question = interaction.options.getString('question');
   const options = [];
@@ -24,10 +24,10 @@ export async function execute(interaction) {
     if (opt) options.push(opt);
   }
   if (options.length < 2) {
-    return interaction.reply({ content: '❌ You must provide at least 2 options.', flags: 64 });
+    return interaction.reply({ content: '❌ You must provide at least 2 options.', ephemeral: true });
   }
   if (options.length > 10) {
-    return interaction.reply({ content: '❌ You can provide up to 10 options.', flags: 64 });
+    return interaction.reply({ content: '❌ You can provide up to 10 options.', ephemeral: true });
   }
   let desc = '';
   for (let i = 0; i < options.length; i++) {

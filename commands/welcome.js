@@ -82,7 +82,7 @@ async function handleSetChannel(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
         return await interaction.reply({
             content: '❌ **You need "Manage Server" permission to configure the welcome system.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -100,14 +100,14 @@ async function handleSetChannel(interaction, client) {
         .setFooter({ text: 'Velari Welcome System', iconURL: interaction.guild.iconURL() })
         .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], flags: 64 });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
 async function handleToggle(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
         return await interaction.reply({
             content: '❌ **You need "Manage Server" permission to configure the welcome system.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -137,14 +137,14 @@ async function handleToggle(interaction, client) {
         .setFooter({ text: 'Velari Welcome System', iconURL: interaction.guild.iconURL() })
         .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], flags: 64 });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
 async function handleTest(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
         return await interaction.reply({
             content: '❌ **You need "Manage Server" permission to test the welcome system.**',
-            flags: 64
+            ephemeral: true
         });
     }
     // Send the real welcome message
@@ -169,7 +169,7 @@ async function handleTest(interaction, client) {
         content: '👀 **Welcome Message Preview:**',
         embeds: [embed],
         files: [{ attachment: './Lunary_Banner.png', name: 'Lunary_Banner.png' }],
-        flags: 64
+        ephemeral: true
     });
 }
 

@@ -7,7 +7,7 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction) {
   if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
-    return interaction.reply({ content: '❌ You need Manage Server permission to use this command.', flags: 64 });
+    return interaction.reply({ content: '❌ You need Manage Server permission to use this command.', ephemeral: true });
   }
   const embed = new EmbedBuilder()
     .setTitle('🆘 Support Tickets')
@@ -68,7 +68,7 @@ export async function handleSupportTicketModal(interaction, client) {
       topic: `Support ticket for ${interaction.user.tag}`
     });
   } catch (err) {
-    return interaction.reply({ content: '❌ Failed to create support channel. Please contact an admin.', flags: 64 });
+    return interaction.reply({ content: '❌ Failed to create support channel. Please contact an admin.', ephemeral: true });
   }
 
   const embed = new EmbedBuilder()
@@ -90,5 +90,5 @@ export async function handleSupportTicketModal(interaction, client) {
     timestamp: new Date()
   });
 
-  await interaction.reply({ content: `✅ Your support ticket has been created! ${ticketChannel.toString()}`, flags: 64 });
+  await interaction.reply({ content: `✅ Your support ticket has been created! ${ticketChannel.toString()}`, ephemeral: true });
 } 

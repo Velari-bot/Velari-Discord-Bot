@@ -117,7 +117,7 @@ export async function execute(interaction) {
       .setFooter({ text: `Added by ${interaction.user.tag}` })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], flags: 64 });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
 
     // DM the user about their order
     try {
@@ -146,7 +146,7 @@ export async function execute(interaction) {
     console.error('Error adding order:', error);
     await interaction.reply({
       content: '❌ **Failed to add order to the system. Please try again.**',
-      flags: 64
+      ephemeral: true
     });
   }
 } 

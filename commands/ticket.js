@@ -75,7 +75,7 @@ async function handleTicketSetup(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
         return await interaction.reply({
             content: '❌ **You need the "Manage Channels" permission to setup the ticket system.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -107,13 +107,13 @@ async function handleTicketSetup(interaction, client) {
 
         await interaction.reply({
             content: `✅ **Ticket panel has been successfully setup in ${channel.toString()}!**`,
-            flags: 64
+            ephemeral: true
         });
     } catch (error) {
         console.error('Error setting up ticket panel:', error);
         await interaction.reply({
             content: '❌ **Failed to setup ticket panel. Please check my permissions in the channel.**',
-            flags: 64
+            ephemeral: true
         });
     }
 }
@@ -126,7 +126,7 @@ async function handleCloseTicket(interaction, client) {
     if (!isValidTicketChannel(channel.name)) {
         return await interaction.reply({
             content: '❌ **This command can only be used in ticket channels.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -137,7 +137,7 @@ async function handleCloseTicket(interaction, client) {
     if (!hasPermission) {
         return await interaction.reply({
             content: '❌ **You do not have permission to close tickets.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -166,7 +166,7 @@ async function handleCloseTicket(interaction, client) {
 async function handleTicketPanel(interaction) {
     // Only allow admins to use this command
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
-        return interaction.reply({ content: '❌ You need Manage Server permission to use this command.', flags: 64 });
+        return interaction.reply({ content: '❌ You need Manage Server permission to use this command.', ephemeral: true });
     }
     const embed = new EmbedBuilder()
         .setTitle('🎫 Open a Support Ticket')
@@ -248,7 +248,7 @@ export async function handleTicketModal(interaction, client) {
             topic: `Order ID: ${orderId} | Ticket for ${interaction.user.tag}`
         });
     } catch (err) {
-        return interaction.reply({ content: '❌ Failed to create ticket channel. Please contact an admin.', flags: 64 });
+        return interaction.reply({ content: '❌ Failed to create ticket channel. Please contact an admin.', ephemeral: true });
     }
 
     // Tag user and support role, post embed with answers and order ID
@@ -315,7 +315,7 @@ You can track your order at any time with \`/trackorder order_id:${orderId}\``)
         }
     }
 
-    await interaction.reply({ content: `✅ Your ticket has been created! ${ticketChannel.toString()}`, flags: 64 });
+    await interaction.reply({ content: `✅ Your ticket has been created! ${ticketChannel.toString()}`, ephemeral: true });
 }
 
 export async function handleCloseTicketButton(interaction, client) {
@@ -326,7 +326,7 @@ export async function handleCloseTicketButton(interaction, client) {
     if (!isValidTicketChannel(channel.name)) {
         return await interaction.reply({
             content: '❌ **This command can only be used in ticket channels.**',
-            flags: 64
+            ephemeral: true
         });
     }
 
@@ -337,7 +337,7 @@ export async function handleCloseTicketButton(interaction, client) {
     if (!hasPermission) {
         return await interaction.reply({
             content: '❌ **You do not have permission to close tickets.**',
-            flags: 64
+            ephemeral: true
         });
     }
 

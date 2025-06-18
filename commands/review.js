@@ -81,7 +81,7 @@ export async function execute(interaction, client) {
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
         content: '❌ **An error occurred while processing your request.**',
-        flags: 64
+        ephemeral: true
       });
     } else if (interaction.deferred) {
       await interaction.editReply({
@@ -137,7 +137,7 @@ async function handleMakeReview(interaction) {
   if (!member.roles.cache.has(purchasedRoleId)) {
     return await interaction.reply({
       content: '❌ **You need to purchase a product first to leave a review.**\n\n**How to get access:**\n• Purchase a premium subscription\n• Contact an admin to get the purchased role\n• Then you can leave reviews!',
-      flags: 64
+      ephemeral: true
     });
   }
 
