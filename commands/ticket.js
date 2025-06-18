@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, ChannelType, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder } from 'discord.js';
-import { TICKET_CONFIG, CHANNEL_IDS } from '../config.js';
+import { TICKET_CONFIG, CHANNEL_IDS, ALLOWED_ROLES, OVERRIDE_ROLES, ROLES } from '../config.js';
 import { getUserTicket, generateTicketChannelName, getOrCreateSupportRole, createTicketPermissions, hasTicketPermission, isValidTicketChannel } from '../utils/ticketUtils.js';
 import { db } from '../firebase/firebase.js';
 
@@ -266,7 +266,14 @@ export async function handleTicketModal(interaction, client) {
         )
         .setFooter({ text: `User: ${interaction.user.tag} | ID: ${interaction.user.id}` })
         .setTimestamp();
-    await ticketChannel.send({ content: `${userTag} ${supportTag}`, embeds: [embed] });
+    const closeButton = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId('close_ticket')
+            .setLabel('Close Ticket')
+            .setStyle(ButtonStyle.Danger)
+            .setEmoji('🔒')
+    );
+    await ticketChannel.send({ content: `${userTag} ${supportTag}`, embeds: [embed], components: [closeButton] });
 
     // Log to Firestore
     await db.collection('orders').add({
@@ -331,10 +338,12 @@ export async function handleCloseTicketButton(interaction, client) {
     }
 
     // Check if user has permission to close tickets
-    const supportRole = interaction.guild.roles.cache.find(role => role.name === TICKET_CONFIG.SUPPORT_ROLE_NAME);
-    const hasPermission = hasTicketPermission(interaction.member, supportRole);
-
-    if (!hasPermission) {
+    const memberRoleIds = interaction.member.roles.cache.map(r => r.id);
+    const isAllowed =
+        (ALLOWED_ROLES && ALLOWED_ROLES.some(roleId => memberRoleIds.includes(roleId))) ||
+        (OVERRIDE_ROLES && OVERRIDE_ROLES.some(roleId => memberRoleIds.includes(roleId))) ||
+        (ROLES && (memberRoleIds.includes(ROLES.owner) || memberRoleIds.includes(ROLES.staff)));
+    if (!isAllowed) {
         return await interaction.reply({
             content: '❌ **You do not have permission to close tickets.**',
             ephemeral: true
