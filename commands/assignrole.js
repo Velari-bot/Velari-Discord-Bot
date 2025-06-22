@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { ALLOWED_ROLES, OVERRIDE_ROLES, CHANNEL_IDS } from '../config.js';
+import { CHANNEL_IDS } from '../config.js';
+import { hasAdminPermission, hasStaffPermission } from '../utils/serverRoles.js';
 
 export const data = new SlashCommandBuilder()
   .setName('assignrole')
@@ -41,11 +42,20 @@ async function logRoleAssignment(interaction, targetUser, purchasedRole, reason)
 
 export async function execute(interaction, client) {
   try {
-    // Check permissions
-    const member = interaction.member;
-    const hasPermission = member.roles.cache.some(role => 
-      ALLOWED_ROLES.includes(role.id) || OVERRIDE_ROLES.includes(role.id)
-    );
+    // Check if server is configured
+    const { isServerConfigured } = await import('../utils/serverRoles.js');
+    const configured = await isServerConfigured(interaction.guild.id);
+    
+    if (!configured) {
+      return await interaction.reply({
+        content: '❌ **This server has not been configured yet. Please use `/setup` to configure the bot first.**',
+        ephemeral: true
+      });
+    }
+
+    // Check permissions using new system
+    const hasPermission = await hasAdminPermission(interaction.member) || 
+                         await hasStaffPermission(interaction.member);
 
     if (!hasPermission) {
       return await interaction.reply({

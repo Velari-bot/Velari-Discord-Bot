@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, PermissionFlagsBits } from 'discord.js';
-import { ALLOWED_ROLES, OVERRIDE_ROLES } from '../config.js';
 import { createKey, getAllKeys, getKeysByModel, getActiveKeysByModel, deactivateKey, reactivateKey, getKeyStats } from '../firebase/keys.js';
 import { generatePremiumKey, generateStandardKey, calculateExpiryDate, formatDuration, getTimeRemaining, validateKeyFormat, formatKeyForDisplay } from '../utils/keyGenerator.js';
+import { hasAdminPermission, hasStaffPermission, isServerConfigured } from '../utils/serverRoles.js';
 import nodemailer from 'nodemailer';
 
 export const data = new SlashCommandBuilder()
@@ -112,11 +112,19 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction, client) {
   try {
-    // Check permissions
-    const member = interaction.member;
-    const hasPermission = member.roles.cache.some(role => 
-      ALLOWED_ROLES.includes(role.id) || OVERRIDE_ROLES.includes(role.id)
-    );
+    // Check if server is configured
+    const configured = await isServerConfigured(interaction.guild.id);
+    
+    if (!configured) {
+      return await interaction.reply({
+        content: '❌ **This server has not been configured yet. Please use `/setup` to configure the bot first.**',
+        ephemeral: true
+      });
+    }
+
+    // Check permissions using new system
+    const hasPermission = await hasAdminPermission(interaction.member) || 
+                         await hasStaffPermission(interaction.member);
 
     if (!hasPermission) {
       return await interaction.reply({

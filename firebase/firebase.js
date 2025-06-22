@@ -2,33 +2,20 @@ import admin from 'firebase-admin';
 import fs from 'fs';
 import path from 'path';
 
+// Always use local file for local development
+let serviceAccount;
+try {
+  const serviceAccountPath = path.join(process.cwd(), 'velari-59c5e-firebase-adminsdk-fbsvc-1d3000b75a.json');
+  const serviceAccountFile = fs.readFileSync(serviceAccountPath, 'utf8');
+  serviceAccount = JSON.parse(serviceAccountFile);
+  console.log('✅ Firebase service account loaded from local file');
+} catch (error) {
+  console.error('❌ Error loading Firebase service account:', error);
+  console.log('📋 Make sure the Firebase service account key file is in your project root directory.');
+  process.exit(1);
+}
+
 if (!admin.apps.length) {
-  let serviceAccount;
-  
-  // Try to load from environment variable first (for Railway/Production)
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    try {
-      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      console.log('✅ Firebase service account loaded from environment variable');
-    } catch (error) {
-      console.error('❌ Error parsing Firebase service account from environment:', error);
-      process.exit(1);
-    }
-  } else {
-    // Load from local file (for local development)
-    try {
-      const serviceAccountPath = path.join(process.cwd(), 'velari-59c5e-firebase-adminsdk-fbsvc-1d3000b75a.json');
-      const serviceAccountFile = fs.readFileSync(serviceAccountPath, 'utf8');
-      serviceAccount = JSON.parse(serviceAccountFile);
-      console.log('✅ Firebase service account loaded from local file');
-    } catch (error) {
-      console.error('❌ Error loading Firebase service account:', error);
-      console.log('📋 Make sure the Firebase service account key file is in your project root directory.');
-      console.log('📋 Or set the FIREBASE_SERVICE_ACCOUNT environment variable.');
-      process.exit(1);
-    }
-  }
-  
   try {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),

@@ -112,7 +112,7 @@ client.on('interactionCreate', async interaction => {
       const priceModule = await import('./commands/price.js');
       const portfolioModule = await import('./commands/portfolio.js');
       
-      if (customId === 'create_ticket') {
+      if (customId === 'create_ticket' || customId === 'open_ticket') {
         await ticketModule.handleCreateTicket(interaction, client);
       } else if (customId === 'close_ticket') {
         await ticketModule.handleCloseTicketButton(interaction, client);
@@ -430,6 +430,89 @@ client.on('guildMemberAdd', async member => {
       await member.ban({ reason: 'Permanently banned by bot.' });
       await member.send('🚫 You are permanently banned from this server.');
     } catch {}
+  }
+});
+
+// Handle new server joins
+client.on('guildCreate', async (guild) => {
+  try {
+    console.log(`🎉 Bot added to new server: ${guild.name} (${guild.id})`);
+    
+    // Find a suitable channel to send the welcome message
+    let welcomeChannel = null;
+    
+    // Try to find a general or announcements channel
+    const channelTypes = ['general', 'announcements', 'welcome', 'chat', 'main'];
+    for (const type of channelTypes) {
+      const channel = guild.channels.cache.find(ch => 
+        ch.type === 0 && // Text channel
+        ch.permissionsFor(guild.members.me).has('SendMessages') &&
+        (ch.name.toLowerCase().includes(type) || ch.name.toLowerCase().includes('general'))
+      );
+      if (channel) {
+        welcomeChannel = channel;
+        break;
+      }
+    }
+    
+    // If no suitable channel found, try the first text channel the bot can send messages to
+    if (!welcomeChannel) {
+      welcomeChannel = guild.channels.cache.find(ch => 
+        ch.type === 0 && // Text channel
+        ch.permissionsFor(guild.members.me).has('SendMessages')
+      );
+    }
+    
+    if (welcomeChannel) {
+      const welcomeEmbed = new EmbedBuilder()
+        .setTitle('🎉 **Welcome to Velari Bot!**')
+        .setColor('#4CAF50')
+        .setDescription(`**Thank you for adding Velari to your server!**\n\n**To get started, you need to configure the bot for your server.**`)
+        .addFields({
+          name: '🔧 **Setup Required**',
+          value: '**Use `/setup` to configure admin and staff roles:**\n\n• **Admin Role** - Full access to all bot features\n• **Staff Role** - Access to view orders and help with support\n• **Support Role** (optional) - Can manage tickets\n\n**Only users with "Manage Server" permission can run this command.**',
+          inline: false
+        })
+        .addFields({
+          name: '🚀 **Available Features**',
+          value: '• **Order Management** - Track and manage orders\n• **Key System** - Generate and manage premium keys\n• **Ticket System** - Support ticket management\n• **Review System** - Customer review management\n• **Embed Builder** - Create custom embeds\n• **And much more!**',
+          inline: false
+        })
+        .addFields({
+          name: '📋 **Next Steps**',
+          value: '1. **Run `/setup`** to configure roles\n2. **Run `/serverinfo`** to view current configuration\n3. **Start using the bot!**\n\n**Need help?** Check the bot\'s help commands or contact support.',
+          inline: false
+        })
+        .setFooter({ text: 'Velari Bot - Multi-Server Ready', iconURL: client.user.displayAvatarURL() })
+        .setTimestamp();
+
+      await welcomeChannel.send({ embeds: [welcomeEmbed] });
+    }
+    
+    // Log the new server
+    console.log(`📝 New server added: ${guild.name} (${guild.id}) - Owner: ${guild.ownerId}`);
+    
+  } catch (error) {
+    console.error('Error handling new server join:', error);
+  }
+});
+
+// Handle server leaves
+client.on('guildDelete', async (guild) => {
+  try {
+    console.log(`👋 Bot removed from server: ${guild.name} (${guild.id})`);
+    
+    // Clean up server configuration from Firebase
+    try {
+      const { db } = await import('./firebase/firebase.js');
+      await db.collection('server_configs').doc(guild.id).delete();
+      console.log(`🗑️ Cleaned up server config for: ${guild.name} (${guild.id})`);
+    } catch (error) {
+      console.error('Error cleaning up server config:', error);
+    }
+    
+  } catch (error) {
+    console.error('Error handling server leave:', error);
   }
 });
 

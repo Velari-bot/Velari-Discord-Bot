@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, PermissionFlagsBits, ChannelType, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, InteractionType } from 'discord.js';
 import { buildEmbedPreview } from '../utils/embedPreview.js';
+import { hasAdminPermission, hasStaffPermission, isServerConfigured } from '../utils/serverRoles.js';
 
-const ALLOWED_ROLES = ['Admin', 'Sales', 'Creative Lead'];
 const PREVIEW_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 const userEmbedState = new Map(); // userId -> { embedData, previewMsgId, timeout }
 
@@ -110,55 +110,79 @@ function getActionRows() {
  * Main /embedbuilder command execute function: only shows the modal.
  */
 export async function execute(interaction, client) {
-  const modal = new ModalBuilder()
-    .setCustomId('embedbuilder_modal')
-    .setTitle('Embed Builder');
-
-  const titleInput = new TextInputBuilder()
-    .setCustomId('embed_title')
-    .setLabel('Title (optional)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  const descInput = new TextInputBuilder()
-    .setCustomId('embed_description')
-    .setLabel('Description (required)')
-    .setStyle(TextInputStyle.Paragraph)
-    .setRequired(true);
-
-  const colorInput = new TextInputBuilder()
-    .setCustomId('embed_color')
-    .setLabel('Color Hex (e.g. #FF4F8B)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  const footerInput = new TextInputBuilder()
-    .setCustomId('embed_footer')
-    .setLabel('Footer Text (optional)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  const thumbInput = new TextInputBuilder()
-    .setCustomId('embed_thumbnail')
-    .setLabel('Thumbnail URL (optional)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  modal.addComponents(
-    new ActionRowBuilder().addComponents(titleInput),
-    new ActionRowBuilder().addComponents(descInput),
-    new ActionRowBuilder().addComponents(colorInput),
-    new ActionRowBuilder().addComponents(footerInput),
-    new ActionRowBuilder().addComponents(thumbInput)
-  );
-
   try {
+    // Check if server is configured
+    const configured = await isServerConfigured(interaction.guild.id);
+    
+    if (!configured) {
+      return await interaction.reply({
+        content: '❌ **This server has not been configured yet. Please use `/setup` to configure the bot first.**',
+        ephemeral: true
+      });
+    }
+
+    // Check permissions using new system
+    const hasPermission = await hasAdminPermission(interaction.member) || 
+                         await hasStaffPermission(interaction.member);
+
+    if (!hasPermission) {
+      return await interaction.reply({
+        content: '❌ **You do not have permission to use the embed builder.**',
+        ephemeral: true
+      });
+    }
+
+    const modal = new ModalBuilder()
+      .setCustomId('embedbuilder_modal')
+      .setTitle('Embed Builder');
+
+    const titleInput = new TextInputBuilder()
+      .setCustomId('embed_title')
+      .setLabel('Title (optional)')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false);
+
+    const descInput = new TextInputBuilder()
+      .setCustomId('embed_description')
+      .setLabel('Description (required)')
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
+
+    const colorInput = new TextInputBuilder()
+      .setCustomId('embed_color')
+      .setLabel('Color Hex (e.g. #FF4F8B)')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false);
+
+    const footerInput = new TextInputBuilder()
+      .setCustomId('embed_footer')
+      .setLabel('Footer Text (optional)')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false);
+
+    const thumbInput = new TextInputBuilder()
+      .setCustomId('embed_thumbnail')
+      .setLabel('Thumbnail URL (optional)')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false);
+
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(titleInput),
+      new ActionRowBuilder().addComponents(descInput),
+      new ActionRowBuilder().addComponents(colorInput),
+      new ActionRowBuilder().addComponents(footerInput),
+      new ActionRowBuilder().addComponents(thumbInput)
+    );
+
     if (!interaction.replied && !interaction.deferred) {
       await interaction.showModal(modal);
     }
-  } catch (err) {
-    console.error('Error showing modal:', err);
-    return;
+  } catch (error) {
+    console.error('Error in embedbuilder command:', error);
+    await interaction.reply({
+      content: '❌ **An error occurred while processing your request.**',
+      ephemeral: true
+    });
   }
 }
 

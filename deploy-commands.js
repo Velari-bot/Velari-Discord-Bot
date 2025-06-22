@@ -25,19 +25,19 @@ for (const file of commandFiles) {
 }
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
-const guildIds = ['1381793479495127180', '1254224101342449694', '1384640904798802031']; // Added new guild ID
 
 (async () => {
   try {
-    console.log(`Started refreshing ${commands.length} application (/) commands.`);
-    for (const guildId of guildIds) {
-      await rest.put(
-        Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
-        { body: commands },
-      );
-      console.log(`Successfully reloaded application (/) commands for guild ${guildId}.`);
-    }
+    console.log(`Started refreshing ${commands.length} application (/) commands globally.`);
+
+    // Deploy commands globally instead of to specific guilds
+    await rest.put(
+      Routes.applicationCommands(process.env.CLIENT_ID),
+      { body: commands },
+    );
+
+    console.log(`Successfully reloaded ${commands.length} application (/) commands globally.`);
   } catch (error) {
-    console.error(error);
+    console.error('Error deploying global commands:', error);
   }
 })(); 

@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } from 'discord.js';
-import { ALLOWED_ROLES, OVERRIDE_ROLES } from '../config.js';
-import { getAllKeys, getKeysByModel, getKeyStats } from '../firebase/keys.js';
+import { getAllKeys, getActiveKeysByModel, getKeyStats } from '../firebase/keys.js';
+import { hasAdminPermission, hasStaffPermission, isServerConfigured } from '../utils/serverRoles.js';
 import { getTimeRemaining, formatDuration } from '../utils/keyGenerator.js';
 
 export const data = new SlashCommandBuilder()
@@ -40,113 +40,33 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction, client) {
   try {
-    // Check permissions
-    const member = interaction.member;
-    const hasPermission = member.roles.cache.some(role => 
-      ALLOWED_ROLES.includes(role.id) || OVERRIDE_ROLES.includes(role.id)
-    );
-
-    if (!hasPermission) {
+    // Check if server is configured
+    const configured = await isServerConfigured(interaction.guild.id);
+    
+    if (!configured) {
       return await interaction.reply({
-        content: '❌ **You do not have permission to view the key dashboard.**',
+        content: '❌ **This server has not been configured yet. Please use `/setup` to configure the bot first.**',
         ephemeral: true
       });
     }
 
-    const filter = interaction.options.getString('filter') || 'all';
-    const modelFilter = interaction.options.getString('model') || 'all';
-    const sort = interaction.options.getString('sort') || 'newest';
+    // Check permissions using new system
+    const hasPermission = await hasAdminPermission(interaction.member) || 
+                         await hasStaffPermission(interaction.member);
 
-    await interaction.deferReply();
-
-    try {
-      // Get keys based on filters
-      let keys;
-      if (modelFilter === 'all') {
-        keys = await getAllKeys();
-      } else {
-        keys = await getKeysByModel(modelFilter);
-      }
-
-      // Apply status filter
-      if (filter === 'active') {
-        keys = keys.filter(key => key.isActive);
-      } else if (filter === 'redeemed') {
-        keys = keys.filter(key => !key.isActive);
-      } else if (filter === 'expired') {
-        keys = keys.filter(key => {
-          if (!key.expiresAt) return false;
-          return new Date() > key.expiresAt.toDate();
-        });
-      }
-
-      // Apply sorting
-      keys = sortKeys(keys, sort);
-
-      // Get statistics
-      const stats = await getKeyStats();
-
-      // Create main dashboard embed
-      const embed = createDashboardEmbed(keys, stats, filter, modelFilter, sort);
-
-      // Create action buttons
-      const row1 = new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder()
-            .setCustomId('dashboard_export_csv')
-            .setLabel('Export CSV')
-            .setStyle(ButtonStyle.Primary)
-            .setEmoji('📊'),
-          new ButtonBuilder()
-            .setCustomId('dashboard_generate_keys')
-            .setLabel('Generate Keys')
-            .setStyle(ButtonStyle.Success)
-            .setEmoji('🔑'),
-          new ButtonBuilder()
-            .setCustomId('dashboard_refresh')
-            .setLabel('Refresh')
-            .setStyle(ButtonStyle.Secondary)
-            .setEmoji('🔄')
-        );
-
-      const row2 = new ActionRowBuilder()
-        .addComponents(
-          new StringSelectMenuBuilder()
-            .setCustomId('dashboard_filter')
-            .setPlaceholder('Filter Keys')
-            .addOptions([
-              { label: 'All Keys', value: 'all', emoji: '📋' },
-              { label: 'Active Only', value: 'active', emoji: '✅' },
-              { label: 'Redeemed Only', value: 'redeemed', emoji: '🔒' },
-              { label: 'Expired Only', value: 'expired', emoji: '⏰' }
-            ]),
-          new StringSelectMenuBuilder()
-            .setCustomId('dashboard_model')
-            .setPlaceholder('Filter by Model')
-            .addOptions([
-              { label: 'All Models', value: 'all', emoji: '🎯' },
-              { label: 'Premium Tweak App', value: 'premium_tweak', emoji: '📱' },
-              { label: 'Premium Discord Bot', value: 'premium_bot', emoji: '🤖' },
-              { label: 'Premium API Access', value: 'premium_api', emoji: '🔌' }
-            ])
-        );
-
-      await interaction.editReply({ 
-        embeds: [embed], 
-        components: [row1, row2] 
-      });
-
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-      await interaction.editReply({
-        content: '❌ **Failed to load dashboard data.**'
+    if (!hasPermission) {
+      return await interaction.reply({
+        content: '❌ **You do not have permission to access the key dashboard.**',
+        ephemeral: true
       });
     }
 
+    await handleDashboard(interaction);
   } catch (error) {
     console.error('Error in keydashboard command:', error);
-    await interaction.editReply({
-      content: '❌ **An error occurred while processing your request.**'
+    await interaction.reply({
+      content: '❌ **An error occurred while processing your request.**',
+      ephemeral: true
     });
   }
 }
@@ -319,6 +239,98 @@ async function handleGenerateKeys(interaction) {
     await interaction.reply({
       content: '❌ **Failed to process request.**',
       ephemeral: true
+    });
+  }
+}
+
+async function handleDashboard(interaction) {
+  const filter = interaction.options.getString('filter') || 'all';
+  const modelFilter = interaction.options.getString('model') || 'all';
+  const sort = interaction.options.getString('sort') || 'newest';
+
+  await interaction.deferReply();
+
+  try {
+    // Get keys based on filters
+    let keys;
+    if (modelFilter === 'all') {
+      keys = await getAllKeys();
+    } else {
+      keys = await getActiveKeysByModel(modelFilter);
+    }
+
+    // Apply status filter
+    if (filter === 'active') {
+      keys = keys.filter(key => key.isActive);
+    } else if (filter === 'redeemed') {
+      keys = keys.filter(key => !key.isActive);
+    } else if (filter === 'expired') {
+      keys = keys.filter(key => {
+        if (!key.expiresAt) return false;
+        return new Date() > key.expiresAt.toDate();
+      });
+    }
+
+    // Apply sorting
+    keys = sortKeys(keys, sort);
+
+    // Get statistics
+    const stats = await getKeyStats();
+
+    // Create main dashboard embed
+    const embed = createDashboardEmbed(keys, stats, filter, modelFilter, sort);
+
+    // Create action buttons
+    const row1 = new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId('dashboard_export_csv')
+          .setLabel('Export CSV')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('📊'),
+        new ButtonBuilder()
+          .setCustomId('dashboard_generate_keys')
+          .setLabel('Generate Keys')
+          .setStyle(ButtonStyle.Success)
+          .setEmoji('🔑'),
+        new ButtonBuilder()
+          .setCustomId('dashboard_refresh')
+          .setLabel('Refresh')
+          .setStyle(ButtonStyle.Secondary)
+          .setEmoji('🔄')
+      );
+
+    const row2 = new ActionRowBuilder()
+      .addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId('dashboard_filter')
+          .setPlaceholder('Filter Keys')
+          .addOptions([
+            { label: 'All Keys', value: 'all', emoji: '📋' },
+            { label: 'Active Only', value: 'active', emoji: '✅' },
+            { label: 'Redeemed Only', value: 'redeemed', emoji: '🔒' },
+            { label: 'Expired Only', value: 'expired', emoji: '⏰' }
+          ]),
+        new StringSelectMenuBuilder()
+          .setCustomId('dashboard_model')
+          .setPlaceholder('Filter by Model')
+          .addOptions([
+            { label: 'All Models', value: 'all', emoji: '🎯' },
+            { label: 'Premium Tweak App', value: 'premium_tweak', emoji: '📱' },
+            { label: 'Premium Discord Bot', value: 'premium_bot', emoji: '🤖' },
+            { label: 'Premium API Access', value: 'premium_api', emoji: '🔌' }
+          ])
+      );
+
+    await interaction.editReply({ 
+      embeds: [embed], 
+      components: [row1, row2] 
+    });
+
+  } catch (error) {
+    console.error('Error loading dashboard:', error);
+    await interaction.editReply({
+      content: '❌ **Failed to load dashboard data.**'
     });
   }
 } 

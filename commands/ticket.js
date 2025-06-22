@@ -2,6 +2,7 @@ import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, But
 import { TICKET_CONFIG, CHANNEL_IDS, ALLOWED_ROLES, OVERRIDE_ROLES, ROLES } from '../config.js';
 import { getUserTicket, generateTicketChannelName, getOrCreateSupportRole, createTicketPermissions, hasTicketPermission, isValidTicketChannel } from '../utils/ticketUtils.js';
 import { db } from '../firebase/firebase.js';
+import { hasSupportPermission, getSupportRole, isServerConfigured } from '../utils/serverRoles.js';
 
 // Helper to load ticket config from Firestore
 async function loadTicketConfig(guildId, client) {
@@ -130,10 +131,17 @@ async function handleCloseTicket(interaction, client) {
         });
     }
 
-    // Check if user has permission to close tickets
-    const supportRole = interaction.guild.roles.cache.find(role => role.name === TICKET_CONFIG.SUPPORT_ROLE_NAME);
-    const hasPermission = hasTicketPermission(interaction.member, supportRole);
+    // Check if server is configured
+    const configured = await isServerConfigured(interaction.guild.id);
+    if (!configured) {
+        return await interaction.reply({
+            content: '❌ **This server has not been configured yet. Please use `/setup` to configure the bot first.**',
+            ephemeral: true
+        });
+    }
 
+    // Check if user has permission to close tickets
+    const hasPermission = await hasSupportPermission(interaction.member);
     if (!hasPermission) {
         return await interaction.reply({
             content: '❌ **You do not have permission to close tickets.**',
@@ -225,6 +233,15 @@ export async function handleCreateTicket(interaction, client) {
 
 // Export modal handler for use in index.js
 export async function handleTicketModal(interaction, client) {
+    // Check if server is configured
+    const configured = await isServerConfigured(interaction.guild.id);
+    if (!configured) {
+        return await interaction.reply({
+            content: '❌ **This server has not been configured yet. Please use `/setup` to configure the bot first.**',
+            ephemeral: true
+        });
+    }
+
     // Get answers
     const service = interaction.fields.getTextInputValue('ticket_service');
     const description = interaction.fields.getTextInputValue('ticket_description');
@@ -236,15 +253,28 @@ export async function handleTicketModal(interaction, client) {
     const guild = interaction.guild;
     const channelName = `ticket-${interaction.user.username}`;
     let ticketChannel;
+    
     try {
+        // Get support role from server config
+        const supportRole = await getSupportRole(guild);
+        
+        const permissionOverwrites = [
+            { id: guild.roles.everyone, deny: ['ViewChannel'] },
+            { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'AttachFiles'] }
+        ];
+
+        // Add support role permissions if it exists
+        if (supportRole) {
+            permissionOverwrites.push({
+                id: supportRole.id,
+                allow: ['ViewChannel', 'SendMessages', 'AttachFiles', 'ManageMessages']
+            });
+        }
+
         ticketChannel = await guild.channels.create({
             name: channelName,
             type: ChannelType.GuildText,
-            permissionOverwrites: [
-                { id: guild.roles.everyone, deny: ['ViewChannel'] },
-                { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'AttachFiles'] },
-                // Add support role permissions if needed
-            ],
+            permissionOverwrites: permissionOverwrites,
             topic: `Order ID: ${orderId} | Ticket for ${interaction.user.tag}`
         });
     } catch (err) {
@@ -252,7 +282,7 @@ export async function handleTicketModal(interaction, client) {
     }
 
     // Tag user and support role, post embed with answers and order ID
-    const supportRole = guild.roles.cache.find(r => r.name === SUPPORT_ROLE_NAME);
+    const supportRole = await getSupportRole(guild);
     const supportTag = supportRole ? `<@&${supportRole.id}>` : '@Support Team';
     const userTag = `<@${interaction.user.id}>`;
     const embed = new EmbedBuilder()
@@ -337,13 +367,18 @@ export async function handleCloseTicketButton(interaction, client) {
         });
     }
 
+    // Check if server is configured
+    const configured = await isServerConfigured(interaction.guild.id);
+    if (!configured) {
+        return await interaction.reply({
+            content: '❌ **This server has not been configured yet. Please use `/setup` to configure the bot first.**',
+            ephemeral: true
+        });
+    }
+
     // Check if user has permission to close tickets
-    const memberRoleIds = interaction.member.roles.cache.map(r => r.id);
-    const isAllowed =
-        (ALLOWED_ROLES && ALLOWED_ROLES.some(roleId => memberRoleIds.includes(roleId))) ||
-        (OVERRIDE_ROLES && OVERRIDE_ROLES.some(roleId => memberRoleIds.includes(roleId))) ||
-        (ROLES && (memberRoleIds.includes(ROLES.owner) || memberRoleIds.includes(ROLES.staff)));
-    if (!isAllowed) {
+    const hasPermission = await hasSupportPermission(interaction.member);
+    if (!hasPermission) {
         return await interaction.reply({
             content: '❌ **You do not have permission to close tickets.**',
             ephemeral: true
